@@ -1,8 +1,8 @@
 {
   "pluginAlias": "BlueAir",
-  "pluginType": "accessory",
-  "singular": false,
-  "headerDisplay": "",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "BlueAir Devices are exposed following login to the BlueAir API. All devices on the account should be listed in the Home app following successful login.",
   "footerDisplay": "",
   "schema": {
     "type": "object",
@@ -16,6 +16,18 @@
             "title": "password",
             "type": "string",
             "required": true
+        },
+        "options": {
+            "title": "Feature Options",
+            "type": "array",
+
+            "items": {
+                "type": "string",
+                "title": "Feature Option",
+                "required": false,
+                "description": "Enter only one option per entry. See project page for the complete list of available options.",
+                "placeholder": "e.g. Disable.uuid"
+            }
         }
     }
   }

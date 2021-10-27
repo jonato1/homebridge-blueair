@@ -106,19 +106,8 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
         this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
-        // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-        //existingAccessory.context.zoneTable = device.zoneTable;
-        /*
-        if (this.config.directAccess) {
-          existingAccessory.context.device = await this.kumo.queryDevice_Direct(device.uuid);
-        } else {
-          existingAccessory.context.device = await this.kumo.queryDevice(device.uuid);
-        }
-        */
         this.api.updatePlatformAccessories([existingAccessory]);
 
-        // create the accessory handler for the restored accessory
-        // this is imported from `platformAccessory.ts`
         new BlueAirPlatformAccessory(this, existingAccessory);
 
       } else {
@@ -135,22 +124,11 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         // create a new accessory
         const accessory = new this.api.platformAccessory(device.name, uuid);
 
-        // store a copy of the device object in the `accessory.context`
-        // the `context` property can be used to store any data about the accessory you may need
         accessory.context.uuid = device.uuid;
         accessory.context.mac = device.mac;
         accessory.context.userid = device.userid;
-        //accessory.context.zoneTable = device.zoneTable;
-        /*
-        if (this.config.directAccess) {
-          accessory.context.device = await this.blueair.queryDevice_Direct(device.uuid);
-        } else {
-          accessory.context.device = await this.blueair.queryDevice(device.uuid);
-        }
-        */
 
         // create the accessory handler for the newly create accessory
-        // this is imported from `platformAccessory.ts`
         new BlueAirPlatformAccessory(this, accessory);
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -184,7 +162,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     // We've explicitly enabled this device.
-    if(this.config.options.indexOf('Enable.' + (device.uuid)) !== -1) {
+    if(this.config.options.indexOf('Enable.' + device.uuid) !== -1) {
       return true;
     }
 
