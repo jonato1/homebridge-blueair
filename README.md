@@ -3,8 +3,8 @@
 </p>
 
 ## @fjs21/homebridge-blueair
-[![Downloads](https://badgen.net/npm/dt/fjs21/homebridge-blueair)](https://www.npmjs.com/package/fjs21/homebridge-blueair)
-[![Version](https://badgen.net/npm/v/fjs21/homebridge-blueair)](https://www.npmjs.com/package/fjs21/homebridge-blueair)
+[![Downloads](https://badgen.net/npm/dt/@fjs21/homebridge-blueair)](https://www.npmjs.com/package/@fjs21/homebridge-blueair)
+[![Version](https://badgen.net/npm/v/@fjs21/homebridge-blueair)](https://www.npmjs.com/package/@fjs21/homebridge-blueair)
 
 [![GitHub issues](https://img.shields.io/github/issues/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/pulls)
