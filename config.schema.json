@@ -16,10 +16,6 @@
             "title": "password",
             "type": "string",
             "required": true
-        },
-        "airPurifierIndex": {
-            "type": "number",
-            "required": true
         }
     }
   }

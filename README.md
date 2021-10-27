@@ -1,9 +1,21 @@
-[![npm](https://img.shields.io/npm/v/homebridge-blueair.svg)](https://www.npmjs.com/package/homebridge-blueair)
-[![GitHub last commit](https://img.shields.io/github/last-commit/mylesgray/homebridge-blueair.svg)](https://github.com/mylesgray/homebridge-blueair)
+<p align="center">
+<img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150"><br/>
+</p>
 
-# Edits to remove warnings in Homebridge
+## @fjs21/homebridge-blueair
+[![Downloads](https://badgen.net/npm/dt/fjs21/homebridge-blueair)](https://www.npmjs.com/package/fjs21/homebridge-blueair)
+[![Version](https://badgen.net/npm/v/fjs21/homebridge-blueair)](https://www.npmjs.com/package/fjs21/homebridge-blueair)
 
-## homebridge-blueair
+[![GitHub issues](https://img.shields.io/github/issues/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/issues)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/pulls)
+
+## Update to dynamic platform
+The plugin was forked and updated completely to a typescript-based dynamic platform supporting the automatic configuration of devices with just the username and password.
+
+Support for configuration in the Homebridge UI has also been added to simplify setup.
+
+# OLD README FOLLOWS
+
 This is a [homebridge](https://github.com/nfarina/homebridge) plugin which lets you integrate your non-HomeKit [BlueAir](https://www.blueair.com/gb/air-purifiers) air purifier into HomeKit.
 
 Currently supported are all Classic i-Series air purifiers, however, Classic series without sensors but do have wifi controls, should be supportable if I can be provided with API output by anyone!
