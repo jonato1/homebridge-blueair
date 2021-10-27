@@ -1,7 +1,7 @@
 [![npm](https://img.shields.io/npm/v/homebridge-blueair.svg)](https://www.npmjs.com/package/homebridge-blueair)
 [![GitHub last commit](https://img.shields.io/github/last-commit/mylesgray/homebridge-blueair.svg)](https://github.com/mylesgray/homebridge-blueair)
 
-# This plugin is not actively maintained, I no longer own a BlueAir and cannot fix issues - Repo is up for adoption.
+# Edits to remove warnings in Homebridge
 
 ## homebridge-blueair
 This is a [homebridge](https://github.com/nfarina/homebridge) plugin which lets you integrate your non-HomeKit [BlueAir](https://www.blueair.com/gb/air-purifiers) air purifier into HomeKit.

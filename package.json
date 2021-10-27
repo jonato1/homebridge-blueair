@@ -1,28 +1,47 @@
 {
-  "name": "homebridge-blueair",
+  "name": "@fjs21/homebridge-blueair",
+  "displayName": "homebridge-blueair",
   "version": "0.5.5",
   "description": "BlueAir plugin for homebridge: https://github.com/nfarina/homebridge",
-  "license": "ISC",
+  "license": "Apache-2.0",
+  "repository": "github:fjs21/homebridge-blueair",
+  "bugs": {
+    "url": "https://github.com/fjs21/homebridge-blueair/issues"
+  },
+  "engines": {
+    "node": ">=10.17.0",
+    "homebridge": ">0.4.53"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "lint": "eslint src/**.ts",
+    "watch": "npm run build && npm link && nodemon",
+    "build": "rimraf ./dist && tsc",
+    "prepublishOnly": "npm run lint && npm run build"
+  },
   "keywords": [
     "homebridge-plugin"
   ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mylesgray/homebridge-blueair.git"
-  },
-  "bugs": {
-    "url": "http://github.com/mylesgray/homebridge-blueair/issues"
-  },
-  "engines": {
-    "node": ">=0.12.0",
-    "homebridge": ">=0.3.1"
-  },
   "dependencies": {
     "fakegato-history": "^0.5.3",
+    "fetch-timeout": "0.0.2",
     "request": "^2.88.0",
     "util": "^0.11.1"
   },
-  "scripts": {
-    "release": "generate-release"
+  "devDependencies": {
+    "@types/node": "^15.12.3",
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "@typescript-eslint/parser": "^4.16.1",
+    "eslint": "^7.21.1",
+    "homebridge": "^1.3.1",
+    "nodemon": "^2.0.7",
+    "rimraf": "^3.0.2",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.2.2",
+    "ansi-regex": ">=5.0.1"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/fjs21"
   }
 }
