@@ -56,11 +56,15 @@ class BlueAirHomebridgePlatform {
         // login to BlueAir
         const login_flag = await this.blueair.login();
         if (!login_flag) {
-            this.log.error('Failed to login. Restart Homebridge to try again.');
+            this.log.error('Failed to login. Check password and restart Homebridge to try again.');
             return false;
         }
         // retrieve devices
         const devices_flag = await this.blueair.getDevices();
+        if (!devices_flag) {
+            this.log.error('Failed to get list of devices. Check BlueAir App.');
+            return false;
+        }
         // loop over the discovered devices and register each one if it has not already been registered
         for (const device of this.blueair.devices) {
             // generate a unique id for the accessory this should be generated from

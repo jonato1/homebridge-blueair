@@ -71,15 +71,19 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     // login to BlueAir
     const login_flag: boolean = await this.blueair.login();
     if(!login_flag){
-      this.log.error('Failed to login. Restart Homebridge to try again.');
+      this.log.error('Failed to login. Check password and restart Homebridge to try again.');
       return false;
     }
 
     // retrieve devices
     const devices_flag = await this.blueair.getDevices();
+    if(!devices_flag){
+      this.log.error('Failed to get list of devices. Check BlueAir App.');
+      return false;
+    }
 
     // loop over the discovered devices and register each one if it has not already been registered
-	  for (const device of this.blueair.devices) { 
+    for (const device of this.blueair.devices) { 
 
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
@@ -94,16 +98,16 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         // the accessory already exists
         
         // Exclude or include certain openers based on configuration parameters.
-	      if(!this.optionEnabled(device)) {
+        if(!this.optionEnabled(device)) {
           this.log.info('Removing accessory:', device.uuid);
           this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
           continue;
-	       }
+        }
 
         this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
 
         // if you need to update the accessory.context then you should run `api.updatePlatformAccessories`. eg.:
-	      //existingAccessory.context.zoneTable = device.zoneTable;
+        //existingAccessory.context.zoneTable = device.zoneTable;
         /*
         if (this.config.directAccess) {
           existingAccessory.context.device = await this.kumo.queryDevice_Direct(device.uuid);
@@ -115,7 +119,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the restored accessory
         // this is imported from `platformAccessory.ts`
-	      new BlueAirPlatformAccessory(this, existingAccessory);
+        new BlueAirPlatformAccessory(this, existingAccessory);
 
       } else {
         // the accessory does not yet exist, so we need to create it
@@ -127,14 +131,14 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         }
 
         this.log.info('Adding new accessory:', device.name);
-	
+  
         // create a new accessory
         const accessory = new this.api.platformAccessory(device.name, uuid);
 
         // store a copy of the device object in the `accessory.context`
         // the `context` property can be used to store any data about the accessory you may need
-	      accessory.context.uuid = device.uuid;
-	      accessory.context.mac = device.mac;
+        accessory.context.uuid = device.uuid;
+        accessory.context.mac = device.mac;
         accessory.context.userid = device.userid;
         //accessory.context.zoneTable = device.zoneTable;
         /*
@@ -147,7 +151,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
         // create the accessory handler for the newly create accessory
         // this is imported from `platformAccessory.ts`
-	      new BlueAirPlatformAccessory(this, accessory);
+        new BlueAirPlatformAccessory(this, accessory);
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }

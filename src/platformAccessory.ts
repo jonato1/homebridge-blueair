@@ -31,13 +31,20 @@ export class BlueAirPlatformAccessory {
     this.setAccessoryInformation();
 
     // initiate services
-    this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) || this.accessory.addService(this.platform.Service.AirPurifier);
-    this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) || this.accessory.addService(this.platform.Service.FilterMaintenance);
-    this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) || this.accessory.addService(this.platform.Service.Lightbulb);
-    this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) || this.accessory.addService(this.platform.Service.AirQualitySensor);
-    this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) || this.accessory.addService(this.platform.Service.TemperatureSensor);
-    this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) || this.accessory.addService(this.platform.Service.HumiditySensor);
-    this.CarbonDioxideSensor = this.accessory.getService(this.platform.Service.CarbonDioxideSensor) || this.accessory.addService(this.platform.Service.CarbonDioxideSensor);
+    this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) || 
+      this.accessory.addService(this.platform.Service.AirPurifier);
+    this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) ||
+      this.accessory.addService(this.platform.Service.FilterMaintenance);
+    this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) || 
+      this.accessory.addService(this.platform.Service.Lightbulb);
+    this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) || 
+      this.accessory.addService(this.platform.Service.AirQualitySensor);
+    this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) || 
+      this.accessory.addService(this.platform.Service.TemperatureSensor);
+    this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) || 
+      this.accessory.addService(this.platform.Service.HumiditySensor);
+    this.CarbonDioxideSensor = this.accessory.getService(this.platform.Service.CarbonDioxideSensor) || 
+      this.accessory.addService(this.platform.Service.CarbonDioxideSensor);
     
     // create handlers for characteristics
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.Active)
@@ -45,7 +52,7 @@ export class BlueAirPlatformAccessory {
       .onSet(this.handleAirPurifierActiveSet.bind(this));
 
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.CurrentAirPurifierState)
-      .onGet(this.handleCurrentAirPurifierStateGet.bind(this))
+      .onGet(this.handleCurrentAirPurifierStateGet.bind(this));
 
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.TargetAirPurifierState)
       .onGet(this.handleTargetAirPurifierGet.bind(this))
@@ -140,7 +147,7 @@ export class BlueAirPlatformAccessory {
 
     // moved to initialization so that peak co2 is only read once
     // this seems to prevent overloading the BlueAir connection
-    let devicehistory = await this.platform.blueair.getDeviceHistory(this.accessory.context.uuid);
+    const devicehistory = await this.platform.blueair.getDeviceHistory(this.accessory.context.uuid);
     if(!devicehistory){
       this.platform.log.error('%s: unable to read device history.', this.accessory.displayName);
       return false;
@@ -150,7 +157,7 @@ export class BlueAirPlatformAccessory {
   }
  
   async updateDevice() {
-     // update accessory.context with latest values from BlueAir
+    // update accessory.context with latest values from BlueAir
 
     if ((Date.now() - BLUEAIR_DEVICE_WAIT) < this.lastquery) {
       //this.platform.log.debug('Recent update from device already performed.');
@@ -163,26 +170,26 @@ export class BlueAirPlatformAccessory {
     }
     this.lastquery = Date.now(); // update time of last query     
 
-    let attributes = await this.platform.blueair.getDeviceAttributes(this.accessory.context.uuid);
+    const attributes = await this.platform.blueair.getDeviceAttributes(this.accessory.context.uuid);
     if(!attributes){
       this.platform.log.error('%s: getDeviceAttributes failed.', this.accessory.displayName);
       return false;
     }
     this.accessory.context.attributes = attributes;
     
-    let info = await this.platform.blueair.getDeviceInfo(this.accessory.context.uuid);
+    const info = await this.platform.blueair.getDeviceInfo(this.accessory.context.uuid);
     if(!info){
       this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
       return false;
     }
     this.accessory.context.info = info;
     
-    var filterusageindays = Math.round(((this.accessory.context.info.initUsagePeriod/60)/60)/24);
-    var filterlifeleft = (180 - filterusageindays);
+    const filterusageindays = Math.round(((this.accessory.context.info.initUsagePeriod/60)/60)/24);
+    const filterlifeleft = (180 - filterusageindays);
     this.accessory.context.info.filterlevel = 100 * (filterlifeleft / 180);
     //this.platform.log.info('%s: Filter life left %s', this.accessory.displayName, this.accessory.context.info.filterlevel);
 
-    let measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
+    const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
     if(!measurements){
       this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
       return false;
@@ -316,11 +323,11 @@ export class BlueAirPlatformAccessory {
 
     let currentValue: number = <number>this.AirPurifier.getCharacteristic(this.platform.Characteristic.Active).value;
     
-    if(this.accessory.context.attributes.fan_speed === "0"){
+    if(this.accessory.context.attributes.fan_speed === '0'){
       currentValue = this.platform.Characteristic.Active.INACTIVE;
     } else if (this.accessory.context.attributes.fan_speed >= 1 && this.accessory.context.attributes.fan_speed <=3) {
       currentValue = this.platform.Characteristic.Active.ACTIVE;
-    } else if (this.accessory.context.attributes.mode == "auto") {
+    } else if (this.accessory.context.attributes.mode === 'auto') {
       currentValue = this.platform.Characteristic.Active.ACTIVE;
     } else {
       this.platform.log.error('%s: failed to determine active state.', this.accessory.displayName);
@@ -353,9 +360,9 @@ export class BlueAirPlatformAccessory {
 
     let currentValue: number = <number>this.AirPurifier.getCharacteristic(this.platform.Characteristic.TargetAirPurifierState).value;
     
-    if(this.accessory.context.attributes.mode == 'auto'){
+    if(this.accessory.context.attributes.mode === 'auto'){
       currentValue = this.platform.Characteristic.TargetAirPurifierState.AUTO;
-    } else if (this.accessory.context.attributes.mode == 'manual'){
+    } else if (this.accessory.context.attributes.mode === 'manual'){
       currentValue = this.platform.Characteristic.TargetAirPurifierState.MANUAL;
     }
 
@@ -402,8 +409,8 @@ export class BlueAirPlatformAccessory {
     // Update Filter maintenance
 
     if(this.accessory.context.attributes.filter_status !== undefined) {
-      let currentValue
-      if(this.accessory.context.attributes.filter_status == "OK"){
+      let currentValue;
+      if(this.accessory.context.attributes.filter_status === 'OK'){
         currentValue = this.platform.Characteristic.FilterChangeIndication.FILTER_OK;
       } else {
         currentValue = this.platform.Characteristic.FilterChangeIndication.CHANGE_FILTER;
@@ -446,7 +453,7 @@ export class BlueAirPlatformAccessory {
         this.AirPurifier.updateCharacteristic(this.platform.Characteristic.VOCDensity, 1000);
       }
 
-      var levels = [
+      const levels = [
         [99999, 2101, this.platform.Characteristic.AirQuality.POOR],
         [2100, 1601, this.platform.Characteristic.AirQuality.INFERIOR],
         [1600, 1101, this.platform.Characteristic.AirQuality.FAIR],
@@ -457,7 +464,7 @@ export class BlueAirPlatformAccessory {
       const ppm = this.accessory.context.measurements.allpollu;
 
       let AirQuality;
-      for(var item of levels){
+      for(const item of levels){
         if(ppm >= item[1] && ppm <= item[0]){
           AirQuality = item[2];
         }
@@ -521,7 +528,8 @@ export class BlueAirPlatformAccessory {
 
     if (this.accessory.context.measurements.co2 !== undefined) {
       // current CO2
-      this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, this.accessory.context.measurements.co2);
+      this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, 
+        this.accessory.context.measurements.co2);
     
       // peak CO2
       const peakco2:number = Math.max(...this.accessory.context.devicehistory.co2);    
@@ -556,7 +564,7 @@ export class BlueAirPlatformAccessory {
 
     } else if (state === 0) {
       // Set fan speed to 0 when turned off
-      let url_end: string = this.accessory.context.uuid + '/attribute/fanspeed/';
+      const url_end: string = this.accessory.context.uuid + '/attribute/fanspeed/';
       await this.platform.blueair.sendCommand(url_end, '0', 'fan_speed', this.accessory.context.uuid);
     }
   }
@@ -564,7 +572,7 @@ export class BlueAirPlatformAccessory {
   async handleTargetAirPurifierSet(state) {
     // Set fan to auto turned on without a speed set
 
-    let targetPurifierState: string = '';
+    let targetPurifierState = '';
     if(state === 0){
       targetPurifierState = 'manual';
     } else if (state === 1){
@@ -584,16 +592,16 @@ export class BlueAirPlatformAccessory {
 
   async handleRotationSpeedSet(value) {
     // Set fan rotation speed  
-    var levels = [
-          [67, 100, 3],
-          [34, 66, 2],
-          [1, 33, 1],
-          [0, 0 , 0]
-        ];
+    const levels = [
+      [67, 100, 3],
+      [34, 66, 2],
+      [1, 33, 1],
+      [0, 0, 0],
+    ];
 
     //Set fan speed based on percentage passed
-    let fan_speed: string = ''; 
-    for(var item of levels){
+    let fan_speed = ''; 
+    for(const item of levels){
       if(value >= item[0] && value<= item[1]){
         fan_speed = item[2].toString();
       }
@@ -608,15 +616,15 @@ export class BlueAirPlatformAccessory {
   async handleOnSet(state) {
     // Set LightBulb on
 
-    let brightness
+    let brightness;
     if(state === true) {
-      if(this.accessory.context.attributes.brightness !== "0"){
-        brightness = Math.floor(this.accessory.context.attributes.brightness / 100)
+      if(this.accessory.context.attributes.brightness !== '0'){
+        brightness = Math.floor(this.accessory.context.attributes.brightness / 100);
       } else {
         brightness = 4;
       }
     } else if (state === false) {
-        brightness = 0;
+      brightness = 0;
     }
 
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
@@ -626,7 +634,7 @@ export class BlueAirPlatformAccessory {
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
 
-    let brightness = Math.floor(value / 25);
+    const brightness = Math.floor(value / 25);
 
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
     await this.platform.blueair.sendCommand(url_end, brightness.toString(), 'brightness', this.accessory.context.uuid);    
