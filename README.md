@@ -28,6 +28,10 @@ npm install homebridge-blueair
 
 - **Automatic detection and configuration of multiple Kumo devices.** By default - all of your supported Kumo devices are made available in HomeKit.
 
+### To do
+
+- The current plugin does not recognize the device type but this could be added in the future with help from other users. Please contact me if you are willing to help.
+
 ## Plugin Configuration
 If you choose to configure this plugin directly instead of using the [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x), you'll need to add the platform to your `config.json` in your home directory inside `.homebridge`.
 
