@@ -14,42 +14,7 @@ The plugin was forked and updated completely to a typescript-based dynamic platf
 
 Support for configuration in the Homebridge UI has also been added to simplify setup.
 
-# OLD README FOLLOWS
 
-This is a [homebridge](https://github.com/nfarina/homebridge) plugin which lets you integrate your non-HomeKit [BlueAir](https://www.blueair.com/gb/air-purifiers) air purifier into HomeKit.
-
-Currently supported are all Classic i-Series air purifiers, however, Classic series without sensors but do have wifi controls, should be supportable if I can be provided with API output by anyone!
-
-This plugin exposes all BlueAir (Foobot) API characteristics and assigns them to native HomeKit Characteristics. The plugin will also mimic the Elgato Eve *Room* device such that, if using Eve.app on an iOS device, you will have historical logging and graphs of these metrics.
-
-Currently all history state is stored on the local filesystem of the device running homebridge.
-
-## Screenshots
-
-### Eve
-
-Overview  | Detail 1 | Detail 2 | Detail 3
-:--------:|:--------:|:--------:|:--------:
-![Overview](https://dl.dropboxusercontent.com/s/4gwkocdl91nx758/IMG_1318.png?dl=0) | ![Detail 1](https://dl.dropboxusercontent.com/s/jrwekvhlyomxawk/IMG_1319.png?dl=0) | ![Detail 2](https://dl.dropboxusercontent.com/s/v14je4qg50sudj3/IMG_1320.png?dl=0) | ![Detail 3](https://dl.dropboxusercontent.com/s/7xmqwsek0403m57/IMG_1321.png?dl=0)
-
-### Home
-Overview  | Air Purifer On/Off | Air Purifer Fan Speed | Air Purifier Detail 
-:--------:|:------------------:|:---------------------:|:--------------------:
-![Overview](https://dl.dropboxusercontent.com/s/ae2cozmepd25nn0/IMG_1324.png?dl=0) | ![Air Purifer On/Off](https://dl.dropboxusercontent.com/s/efnyu5ocwzpk18o/IMG_1326.png?dl=0) | ![Air Purifer Fan Speed](https://dl.dropboxusercontent.com/s/t1qgk01lj0hezbi/IMG_1327.png?dl=0) | ![Air Purifier Detail](https://dl.dropboxusercontent.com/s/j0zro2vidoc3xdp/IMG_1325.png?dl=0)
-
-Air Quality Overview  | Air Quality Detail | Temperature Overview | Temperature Detail
-:--------------------:|:------------------:|:--------------------:|:-------------------:
-![Air Quality Overview](https://dl.dropboxusercontent.com/s/b7yqdtnusojxcyf/IMG_1329.png?dl=0) | ![Air Quality Detail](https://dl.dropboxusercontent.com/s/re4k2wkxvh10ghw/IMG_1328.png?dl=0) | ![Temperature Overview](https://dl.dropboxusercontent.com/s/5gmxbt0ph7pz96g/IMG_1330.png?dl=0) | ![Temperature Detail](https://dl.dropboxusercontent.com/s/3do2d5cvxvnn0i1/IMG_1331.png?dl=0)
-
-Humidity Overview  | Humidity Detail | CO2 Overview | CO2 Detail
-:-----------------:|:---------------:|:------------:|:------------:
-![Humidity Overview](https://dl.dropboxusercontent.com/s/92utbgvdr2v4xde/IMG_1332.png?dl=0) | ![Humidity Detail](https://dl.dropboxusercontent.com/s/iihjfaugqct5a2z/IMG_1333.png?dl=0) | ![CO2 Overview](https://dl.dropboxusercontent.com/s/27iimf1x5t9eovv/IMG_1334.png?dl=0) | ![CO2 Detail](https://dl.dropboxusercontent.com/s/cblaxcfbg2duu2m/IMG_1335.png?dl=0)
-
-LED Overview  | LED Detail | LED Brightness | CO2 Automation
-:------------:|:----------:|:--------------:|:---------------------:
-![LED Overview](https://dl.dropboxusercontent.com/s/fn58gdei0zznngw/IMG_1336.png?dl=0) | ![LED Detail](https://dl.dropboxusercontent.com/s/w1cyj3vukeq8jij/IMG_1341.png?dl=0) | ![LED Brightness](https://dl.dropboxusercontent.com/s/jd4ugcml1lktv8c/IMG_1340.png?dl=0) | ![CO2 Automation](https://dl.dropboxusercontent.com/s/14j4zdhgbpospl9/IMG_1338.png?dl=0)
-
-## Configuration
 
 ### Installation
 
@@ -57,82 +22,28 @@ LED Overview  | LED Detail | LED Brightness | CO2 Automation
 npm install homebridge-blueair
 ```
 
-### config.json
+### Features
 
-An explaination of the config is below, a `config-example.json` is also provided along with the plugin for ease of use.
+- ***Easy* configuration - all you need is your username and password to get started.** The defaults work for the vast majority of users.
 
-For instructions on how to retrieve your apikey [see here](https://github.com/mylesgray/homebridge-blueair/wiki/API_Key).
+- **Automatic detection and configuration of multiple Kumo devices.** By default - all of your supported Kumo devices are made available in HomeKit.
 
-```
-/// i-Series
-  {
-    "accessory": "BlueAir",
-    "name": "BlueAir 680i",
-    "airPurifierIndex": "0", //optional if you have multiple air purifiers
-    "nameAirQuality": "Air Quality", //optional
-    "nameTemperature": "Temperature", //optional
-    "nameHumidity": "Humidity", //optional
-    "nameCO2": "Carbon Dioxide", //optional
-    "username": "BlueAir-Email",
-    "password": "BlueAir-Password",
-    "showTemperature": true, //show temp sensor
-    "showHumidity": true, //show humidity sensor
-    "showAirQuality": true, //show air quality sensor
-    "showCO2": true, //show CO2 sensor
-    "showLED": true, //register the air purifier's LED as a lightbulb service
-    "getHistoricalStats": true //enable historical logging in Eve.app
-},
+### To do
 
-/// Classic Series or Sense
+- The current plugin does not recognize the device type but this could be added in the future with help from other users. Please contact me if you are willing to help.
 
-{
-    "accessory": "BlueAir",
-    "name": "BlueAir Sense",
-    "airPurifierIndex": "1", //optional, should match your actual device order
-    "purifierOnly": true, //must be true for Classic/Sense+ device
-    "username": "BlueAir-Email",
-    "password": "BlueAir-Password"
-    "showLED": true //register the air purifier's LED as a lightbulb service
-},
+## Plugin Configuration
+If you choose to configure this plugin directly instead of using the [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x), you'll need to add the platform to your `config.json` in your home directory inside `.homebridge`.
 
-/// Aware
-
-{
-    "accessory": "BlueAir",
-    "name": "BlueAir Aware",
-    "airPurifierIndex": "2", //optional, should match your actual device order
-    "sensorOnly": true, //must be true for Aware device
-    "nameAirQuality": "Air Quality", //optional
-    "nameTemperature": "Temperature", //optional
-    "nameHumidity": "Humidity", //optional
-    "nameCO2": "Carbon Dioxide", //optional
-    "username": "BlueAir-Email",
-    "password": "BlueAir-Password",
-    "showTemperature": true, //show temp sensor
-    "showHumidity": true, //show humidity sensor
-    "showAirQuality": true, //show air quality sensor
-    "showCO2": true, //show CO2 sensor
-    "getHistoricalStats": true //enable historical logging in Eve.app
-}
+```js
+"platforms": [{
+    "platform": "BlueAir",
+    "username": "email@email.com",
+    "password": "password"
+}]
 ```
 
-## Releases
-See [CHANGELOG.md](https://github.com/mylesgray/homebridge-blueair/blob/master/CHANGELOG.md)
+For most people, I recommend using [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x) to configure this plugin rather than doing so directly. It's easier to use for most users, especially newer users, and less prone to typos, leading to other problems.
 
-## To-dos
-See [open enhancement issues](https://github.com/mylesgray/homebridge-blueair/labels/enhancement)
-
-## API research
-There is no documented API for the BlueAir devices, through some API proxying with Charles I was able to find out they use the Foobot API backend for their intelligence and map all requests for get/set.
-
-### Postman collection and environment
-I coallated all requests that my device made into an easy-to-use [Postman collection](https://www.getpostman.com/collections/1a8ff6c577e58a7b6f90).
-
-You need to create a Postman Environment with the following variables in it to use the collection:
-![Postman Environment](https://dl.dropbox.com/s/ogzizxgz1rpyhen/Screenshot%202021-05-19%20at%2012.04.25.png)
-
-## Thanks
-
-This plugin is heavily based on (hacked together from) two other plugins, [homebridge-efergy](https://github.com/luc-ass/homebridge-efergy) and [homebridge-mi-air-purifier](https://github.com/seikan/homebridge-mi-air-purifier), without these plugins I could not have created the foundation on which this was built. Thanks to @luc-ass and @seikan for their work on these.
-
-The [fakegato-history](https://github.com/simont77/fakegato-history) plugin on which this is based was built by @simont77, without this, we wouldn't have pretty graphs to gawk at.
+## Credits
+This plug was forked from [homebridge-blueair](https://github.com/mylesagray/homebridge-blueair) without which this would not be possible. This plugin uses many cues from [homebridge-myq2](https://github.com/hjdhjd/homebridge-myq2/) for plugin structure and my other plugin [homebridge-kumo](https://github.com/fjs21/homebridge-kumo).
