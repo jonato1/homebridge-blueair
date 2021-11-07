@@ -17,7 +17,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   // this is used to track restored cached accessories
   public readonly accessories: PlatformAccessory[] = [];
 
-  readonly blueair: BlueAirApi;
+  readonly blueair!: BlueAirApi;
 
   constructor(
     public readonly log: Logger,
