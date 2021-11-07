@@ -23,6 +23,14 @@ export class BlueAirApi {
     // initiate instance with login information
     constructor(log: Logger, username: string, password: string) {
       this.log = log;
+
+      if(username === undefined){
+        throw new Error('BlueAir API: no username specified.');
+      }
+
+      if(password === undefined){
+        throw new Error('BlueAir API: no password specified.');
+      }
       this.username = username;
       this.password = password;
       this.devices = [];

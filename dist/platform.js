@@ -20,6 +20,10 @@ class BlueAirHomebridgePlatform {
         this.accessories = [];
         // initializing login information
         this.log = log;
+        if (config.username === undefined || config.password === undefined) {
+            this.log.error('Missing BlueAir API credentials.');
+            return;
+        }
         this.blueair = new blueair_api_1.BlueAirApi(this.log, config.username, config.password);
         this.log.debug('Finished initializing platform:', this.config.name);
         // When this event is fired it means Homebridge has restored all cached accessories from disk.
