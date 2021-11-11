@@ -20,7 +20,7 @@ class BlueAirHomebridgePlatform {
         this.accessories = [];
         // initializing login information
         this.log = log;
-        if (config.username === undefined || config.password === undefined) {
+        if (config.username == undefined || config.password == undefined) {
             this.log.error('Missing BlueAir API credentials.');
             return;
         }
