@@ -65,7 +65,7 @@ class BlueAirApi {
         }
         const headers = await response.headers;
         this.authToken = headers.get('x-auth-token');
-        if (this.authToken == null) {
+        if (this.authToken == 'null') {
             this.log.error('BlueAir API: Failed to obtain x-auth-token.');
             return false;
         }
