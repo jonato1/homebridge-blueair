@@ -10,12 +10,15 @@
 [![GitHub issues](https://img.shields.io/github/issues/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/fjs21/homebridge-blueair)](https://github.com/fjs21/homebridge-blueair/pulls)
 
+## Original plugin not maintained but still available
+[Link to Original Plugin Repo](https://github.com/mylesagray/homebridge-blueair)
+
+See Wiki for readme and further details. 
+
 ## Update to dynamic platform
 The plugin was forked and updated completely to a typescript-based dynamic platform supporting the automatic configuration of devices with just the username and password.
 
 Support for configuration in the Homebridge UI has also been added to simplify setup.
-
-
 
 ### Installation
 
