@@ -50,4 +50,4 @@ If you choose to configure this plugin directly instead of using the [Homebridge
 For most people, I recommend using [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x) to configure this plugin rather than doing so directly. It's easier to use for most users, especially newer users, and less prone to typos, leading to other problems.
 
 ## Credits
-This plug was forked from [homebridge-blueair](https://github.com/mylesagray/homebridge-blueair) without which this would not be possible. Many thanks for @mylesagray! This plugin uses many cues from [homebridge-myq2](https://github.com/hjdhjd/homebridge-myq2/) for plugin structure and my other plugin [homebridge-kumo](https://github.com/fjs21/homebridge-kumo).
+This plug was forked from [homebridge-blueair](https://github.com/mylesagray/homebridge-blueair) without which this would not be possible. Many thanks to @mylesagray! This plugin uses many cues from [homebridge-myq2](https://github.com/hjdhjd/homebridge-myq2/) for plugin structure and my other plugin [homebridge-kumo](https://github.com/fjs21/homebridge-kumo).
