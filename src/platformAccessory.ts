@@ -455,7 +455,11 @@ export class BlueAirPlatformAccessory {
 
     if(this.accessory.context.measurements.pm !== undefined) {
 
-      this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM10Density, this.accessory.context.measurements.pm10);
+      if(this.accessory.context.measurements.pm10 !== undefined) {
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM10Density, this.accessory.context.measurements.pm10);
+      } else {
+        this.platform.log.info('%s: no PM10 value found.', this.accessory.displayName);
+      }
       this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
       this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
 
