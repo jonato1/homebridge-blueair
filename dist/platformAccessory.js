@@ -120,28 +120,46 @@ class BlueAirPlatformAccessory {
             return true; //ok to use current data in context to update Characteristic values
         }
         this.lastquery = Date.now(); // update time of last query     
-        const attributes = await this.platform.blueair.getDeviceAttributes(this.accessory.context.uuid);
-        if (!attributes) {
-            this.platform.log.error('%s: getDeviceAttributes failed.', this.accessory.displayName);
+        try {
+            const attributes = await this.platform.blueair.getDeviceAttributes(this.accessory.context.uuid);
+            if (!attributes) {
+                this.platform.log.error('%s: getDeviceAttributes failed.', this.accessory.displayName);
+                return false;
+            }
+            this.accessory.context.attributes = attributes;
+        }
+        catch (error) {
+            this.platform.log.error('%s: getDeviceAttributes error. %s', this.accessory.displayName, error);
             return false;
         }
-        this.accessory.context.attributes = attributes;
-        const info = await this.platform.blueair.getDeviceInfo(this.accessory.context.uuid);
-        if (!info) {
-            this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
+        try {
+            const info = await this.platform.blueair.getDeviceInfo(this.accessory.context.uuid);
+            if (!info) {
+                this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
+                return false;
+            }
+            this.accessory.context.info = info;
+        }
+        catch (error) {
+            this.platform.log.error('%s: getDeviceInfo error. %s', this.accessory.displayName, error);
             return false;
         }
-        this.accessory.context.info = info;
         const filterusageindays = Math.round(((this.accessory.context.info.initUsagePeriod / 60) / 60) / 24);
         const filterlifeleft = (180 - filterusageindays);
         this.accessory.context.info.filterlevel = 100 * (filterlifeleft / 180);
         //this.platform.log.info('%s: Filter life left %s', this.accessory.displayName, this.accessory.context.info.filterlevel);
-        const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-        if (!measurements) {
-            this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
+        try {
+            const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
+            if (!measurements) {
+                this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
+                return false;
+            }
+            this.accessory.context.measurements = measurements;
+        }
+        catch (error) {
+            this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
             return false;
         }
-        this.accessory.context.measurements = measurements;
         return true;
     }
     // handlers GET
