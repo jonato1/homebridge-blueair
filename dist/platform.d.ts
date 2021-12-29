@@ -26,5 +26,6 @@ export declare class BlueAirHomebridgePlatform implements DynamicPlatformPlugin 
      */
     discoverDevices(): Promise<false | undefined>;
     private optionEnabled;
+    private findModelAndInitialize;
 }
 //# sourceMappingURL=platform.d.ts.map

@@ -52,6 +52,26 @@ class BlueAirPlatformAccessory {
         this.Lightbulb.getCharacteristic(this.platform.Characteristic.Brightness)
             .onGet(this.handleBrightnessGet.bind(this))
             .onSet(this.handleBrightnessSet.bind(this));
+        this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM2_5Density)
+            .onGet(this.handlePM25DensityGet.bind(this));
+        this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM10Density)
+            .onGet(this.handlePM25DensityGet.bind(this));
+        this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.AirQuality)
+            .onGet(this.handleAirQualityGet.bind(this));
+        this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.VOCDensity)
+            .onGet(this.handleVOCDensityGet.bind(this));
+        this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+            .onGet(this.handleCurrentTemperatureGet.bind(this));
+        this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+            .onGet(this.handleCurrentRelativeHumidity.bind(this));
+        this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxideLevel)
+            .onGet(this.handleCarbonDioxideLevel.bind(this));
+        // need to add future support for history to calculate peak
+        //this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel)
+        //  .onGet(this.handleCarbonDioxidePeakLevel.bind(this));
+        this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxideDetected)
+            .onGet(this.handleCarbonDioxideDetected.bind(this));
+        // to do add future support for custom characteristic for PM1
         // setup interval for updating device for historyService
         const historyInterval = 10; // history interval in minutes
         const FakeGatoHistoryService = (0, fakegato_history_1.default)(this.platform.api);
@@ -62,49 +82,23 @@ class BlueAirPlatformAccessory {
         setInterval(() => {
             this.platform.log.debug('Running interval');
             this.updateAccessoryCharacteristics();
-            if (this.has_deviceDatapoint) {
-                // add history service entry
-                this.historyService.addEntry({
-                    time: Date.now(),
-                    temp: this.accessory.context.measurements.tmp,
-                    humidity: this.accessory.context.measurements.hum,
-                    ppm: this.accessory.context.measurements.allpollu,
-                });
-            }
+            // add history service entry
+            this.historyService.addEntry({
+                time: Date.now(),
+                temp: this.accessory.context.measurements.tmp,
+                humidity: this.accessory.context.measurements.hum,
+                ppm: this.accessory.context.measurements.allpollu,
+            });
         }, 5000);
     }
     async setAccessoryInformation() {
         // setup information for each accessory
-        this.has_deviceDatapoint = true;
         await this.updateDevice();
         this.accessory.getService(this.platform.Service.AccessoryInformation)
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'BlueAir')
             .setCharacteristic(this.platform.Characteristic.Model, this.accessory.context.info.compatibility)
             .setCharacteristic(this.platform.Characteristic.SerialNumber, this.accessory.context.uuid)
             .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.accessory.context.info.firmware);
-        if (this.has_deviceDatapoint) {
-            // only enable sensors if getDataPoint succeeds...
-            this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM2_5Density)
-                .onGet(this.handlePM25DensityGet.bind(this));
-            this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM10Density)
-                .onGet(this.handlePM25DensityGet.bind(this));
-            this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.AirQuality)
-                .onGet(this.handleAirQualityGet.bind(this));
-            this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.VOCDensity)
-                .onGet(this.handleVOCDensityGet.bind(this));
-            this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
-                .onGet(this.handleCurrentTemperatureGet.bind(this));
-            this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
-                .onGet(this.handleCurrentRelativeHumidity.bind(this));
-            this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxideLevel)
-                .onGet(this.handleCarbonDioxideLevel.bind(this));
-            // need to add future support for history to calculate peak
-            //this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel)
-            //  .onGet(this.handleCarbonDioxidePeakLevel.bind(this));
-            this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxideDetected)
-                .onGet(this.handleCarbonDioxideDetected.bind(this));
-            // to do add future support for custom characteristic for PM1
-        }
         // moved to initialization so that peak co2 is only read once
         // this seems to prevent overloading the BlueAir connection
         const devicehistory = await this.platform.blueair.getDeviceHistory(this.accessory.context.uuid);
@@ -154,20 +148,17 @@ class BlueAirPlatformAccessory {
         const filterlifeleft = (180 - filterusageindays);
         this.accessory.context.info.filterlevel = 100 * (filterlifeleft / 180);
         //this.platform.log.info('%s: Filter life left %s', this.accessory.displayName, this.accessory.context.info.filterlevel);
-        if (this.has_deviceDatapoint) {
-            try {
-                const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-                if (!measurements) {
-                    this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
-                    return false;
-                }
-                this.accessory.context.measurements = measurements;
+        try {
+            const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
+            if (!measurements) {
+                this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
+                return false;
             }
-            catch (error) {
-                this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
-                this.has_deviceDatapoint = false;
-                return true;
-            }
+            this.accessory.context.measurements = measurements;
+        }
+        catch (error) {
+            this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
+            return false;
         }
         return true;
     }
@@ -380,13 +371,8 @@ class BlueAirPlatformAccessory {
             else {
                 this.platform.log.debug('%s: no PM10 value found.', this.accessory.displayName);
             }
-            if (this.accessory.context.measurements.pm !== undefined) {
-                this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-                this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-            }
-            else {
-                this.platform.log.debug('%s: no PM2.5 value found.', this.accessory.displayName);
-            }
+            this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
+            this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
             // Characteristic triggers warning if value over 1000
             if (this.accessory.context.measurements.voc < 1000) {
                 this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.VOCDensity, this.accessory.context.measurements.voc);

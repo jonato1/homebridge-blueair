@@ -114,24 +114,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
         this.api.updatePlatformAccessories([existingAccessory]);
 
-        // retreive model info
-        const info = await this.blueair.getDeviceInfo(device.uuid);
-        this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
-
-        switch (info.compatibility) {
-          case 'classic_280i': 
-            new BlueAirPlatformAccessory(this, existingAccessory);    
-            break;
-          case 'classic_680i': 
-            new BlueAirPlatformAccessory(this, existingAccessory);
-            break;
-          case 'classic_605':
-            new BlueAirClassicAccessory(this, existingAccessory);
-            break;
-          default:
-            this.log.error('%s: device type not recognized, contact developer.', device.name);
-        }
-        
+        await this.findModelAndInitialize(device, existingAccessory);        
 
       } else {
         // the accessory does not yet exist, so we need to create it
@@ -151,24 +134,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         accessory.context.mac = device.mac;
         accessory.context.userid = device.userid;
 
-        // retreive model info
-        const info = await this.blueair.getDeviceInfo(device.uuid);
-        this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
-
-        // create the accessory handler for the newly create accessory
-        switch (info.compatibility) {
-          case 'classic_280i': 
-            new BlueAirPlatformAccessory(this, accessory);    
-            break;
-          case 'classic_680i': 
-            new BlueAirPlatformAccessory(this, accessory);
-            break;
-          case 'classic_605':
-            new BlueAirClassicAccessory(this, accessory);
-            break;
-          default:
-            this.log.error('%s: device type not recognized, contact developer.', device.name);
-        }
+        await this.findModelAndInitialize(device, accessory)
 
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -228,5 +194,26 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     // Nothing special to do - make this opener visible.
     return defaultReturnValue;
+  }
+
+  private async findModelAndInitialize(device, accessory){
+    // retreive model info
+    const info = await this.blueair.getDeviceInfo(device.uuid);
+    this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
+
+    switch (info.compatibility) {
+      case 'classic_280i': 
+        new BlueAirPlatformAccessory(this, accessory);    
+        break;
+      case 'classic_680i': 
+        new BlueAirPlatformAccessory(this, accessory);
+        break;
+      case 'classic_605':
+        new BlueAirClassicAccessory(this, accessory);
+        break;
+      default:
+        this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
+    }
+
   }
 }
