@@ -369,7 +369,7 @@ class BlueAirPlatformAccessory {
                 this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM10Density, this.accessory.context.measurements.pm10);
             }
             else {
-                this.platform.log.info('%s: no PM10 value found.', this.accessory.displayName);
+                this.platform.log.debug('%s: no PM10 value found.', this.accessory.displayName);
             }
             this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
             this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);

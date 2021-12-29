@@ -22,6 +22,8 @@ export class BlueAirPlatformAccessory {
   // setup fake-gato history service for Eve support
   private historyService: fakegato.FakeGatoHistoryService;
 
+  private has_deviceDatapoint;
+
   constructor(
     private readonly platform: BlueAirHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
@@ -137,6 +139,8 @@ export class BlueAirPlatformAccessory {
   async setAccessoryInformation() {
     // setup information for each accessory
 
+    this.has_deviceDatapoint = true;
+
     await this.updateDevice();
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -199,16 +203,19 @@ export class BlueAirPlatformAccessory {
     this.accessory.context.info.filterlevel = 100 * (filterlifeleft / 180);
     //this.platform.log.info('%s: Filter life left %s', this.accessory.displayName, this.accessory.context.info.filterlevel);
 
-    try{
-      const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-      if(!measurements){
-        this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
-        return false;
+    if(this.has_deviceDatapoint){
+      try{
+        const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
+        if(!measurements){
+          this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
+          return false;
+        }
+        this.accessory.context.measurements = measurements;
+      } catch(error) {
+        this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
+        this.has_deviceDatapoint = false;
+        return true;
       }
-      this.accessory.context.measurements = measurements;
-    } catch(error) {
-      this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
-      return false;
     }
 
     return true;
