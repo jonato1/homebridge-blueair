@@ -115,7 +115,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         this.api.updatePlatformAccessories([existingAccessory]);
 
         // retreive model info
-        let info = await this.blueair.getDeviceInfo(device.uuid);
+        const info = await this.blueair.getDeviceInfo(device.uuid);
         this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
 
         switch (info.compatibility) {
@@ -152,7 +152,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         accessory.context.userid = device.userid;
 
         // retreive model info
-        let info = await this.blueair.getDeviceInfo(device.uuid);
+        const info = await this.blueair.getDeviceInfo(device.uuid);
         this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
 
         // create the accessory handler for the newly create accessory
