@@ -93,6 +93,7 @@ class BlueAirPlatformAccessory {
     }
     async setAccessoryInformation() {
         // setup information for each accessory
+        this.has_deviceDatapoint = true;
         await this.updateDevice();
         this.accessory.getService(this.platform.Service.AccessoryInformation)
             .setCharacteristic(this.platform.Characteristic.Manufacturer, 'BlueAir')
@@ -148,17 +149,20 @@ class BlueAirPlatformAccessory {
         const filterlifeleft = (180 - filterusageindays);
         this.accessory.context.info.filterlevel = 100 * (filterlifeleft / 180);
         //this.platform.log.info('%s: Filter life left %s', this.accessory.displayName, this.accessory.context.info.filterlevel);
-        try {
-            const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-            if (!measurements) {
-                this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
-                return false;
+        if (this.has_deviceDatapoint) {
+            try {
+                const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
+                if (!measurements) {
+                    this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
+                    return false;
+                }
+                this.accessory.context.measurements = measurements;
             }
-            this.accessory.context.measurements = measurements;
-        }
-        catch (error) {
-            this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
-            return false;
+            catch (error) {
+                this.platform.log.error('%s: getDeviceDatapoint error. %s', this.accessory.displayName, error);
+                this.has_deviceDatapoint = false;
+                return true;
+            }
         }
         return true;
     }

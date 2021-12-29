@@ -12,6 +12,7 @@ export declare class BlueAirPlatformAccessory {
     private CarbonDioxideSensor;
     private lastquery;
     private historyService;
+    private has_deviceDatapoint;
     constructor(platform: BlueAirHomebridgePlatform, accessory: PlatformAccessory);
     setAccessoryInformation(): Promise<false | undefined>;
     updateDevice(): Promise<boolean>;

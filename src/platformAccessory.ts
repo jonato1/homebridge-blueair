@@ -125,13 +125,15 @@ export class BlueAirPlatformAccessory {
       this.platform.log.debug('Running interval');
       this.updateAccessoryCharacteristics();
 
-      // add history service entry
-      this.historyService.addEntry({
-        time: Date.now(),
-        temp: this.accessory.context.measurements.tmp, 
-        humidity: this.accessory.context.measurements.hum,
-        ppm: this.accessory.context.measurements.allpollu,
-      });
+      if(has_deviceDatapoint) {
+        // add history service entry
+        this.historyService.addEntry({
+          time: Date.now(),
+          temp: this.accessory.context.measurements.tmp, 
+          humidity: this.accessory.context.measurements.hum,
+          ppm: this.accessory.context.measurements.allpollu,
+        });
+      }
     }, 5000);
 
   }
