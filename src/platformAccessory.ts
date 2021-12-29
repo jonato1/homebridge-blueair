@@ -125,7 +125,7 @@ export class BlueAirPlatformAccessory {
       this.platform.log.debug('Running interval');
       this.updateAccessoryCharacteristics();
 
-      if(has_deviceDatapoint) {
+      if(this.has_deviceDatapoint) {
         // add history service entry
         this.historyService.addEntry({
           time: Date.now(),
