@@ -4,6 +4,7 @@ import { BlueAirApi } from './blueair-api';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 
 import { BlueAirPlatformAccessory } from './platformAccessory';
+import { BlueAirClassicAccessory } from './platformAccessory_Classic';
 
 /**
  * HomebridgePlatform
@@ -113,7 +114,24 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
         this.api.updatePlatformAccessories([existingAccessory]);
 
-        new BlueAirPlatformAccessory(this, existingAccessory);
+        // retreive model info
+        let info = await this.blueair.getDeviceInfo(device.uuid);
+        this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
+
+        switch (info.compatibility) {
+          case 'classic_280i': 
+            new BlueAirPlatformAccessory(this, existingAccessory);    
+            break;
+          case 'classic_680i': 
+            new BlueAirPlatformAccessory(this, existingAccessory);
+            break;
+          case 'classic_605':
+            new BlueAirClassicAccessory(this, existingAccessory);
+            break;
+          default:
+            this.log.error('%s: device type not recognized, contact developer.', device.name);
+        }
+        
 
       } else {
         // the accessory does not yet exist, so we need to create it
@@ -133,8 +151,25 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         accessory.context.mac = device.mac;
         accessory.context.userid = device.userid;
 
+        // retreive model info
+        let info = await this.blueair.getDeviceInfo(device.uuid);
+        this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
+
         // create the accessory handler for the newly create accessory
-        new BlueAirPlatformAccessory(this, accessory);
+        switch (info.compatibility) {
+          case 'classic_280i': 
+            new BlueAirPlatformAccessory(this, accessory);    
+            break;
+          case 'classic_680i': 
+            new BlueAirPlatformAccessory(this, accessory);
+            break;
+          case 'classic_605':
+            new BlueAirClassicAccessory(this, accessory);
+            break;
+          default:
+            this.log.error('%s: device type not recognized, contact developer.', device.name);
+        }
+
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }

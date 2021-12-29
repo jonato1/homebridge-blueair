@@ -4,6 +4,7 @@ exports.BlueAirHomebridgePlatform = void 0;
 const blueair_api_1 = require("./blueair-api");
 const settings_1 = require("./settings");
 const platformAccessory_1 = require("./platformAccessory");
+const platformAccessory_Classic_1 = require("./platformAccessory_Classic");
 /**
  * HomebridgePlatform
  * This class is the main constructor for your plugin, this is where you should
@@ -88,7 +89,22 @@ class BlueAirHomebridgePlatform {
                 }
                 this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
                 this.api.updatePlatformAccessories([existingAccessory]);
-                new platformAccessory_1.BlueAirPlatformAccessory(this, existingAccessory);
+                // retreive model info
+                let info = await this.blueair.getDeviceInfo(device.uuid);
+                this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
+                switch (info.compatibility) {
+                    case 'classic_280i':
+                        new platformAccessory_1.BlueAirPlatformAccessory(this, existingAccessory);
+                        break;
+                    case 'classic_680i':
+                        new platformAccessory_1.BlueAirPlatformAccessory(this, existingAccessory);
+                        break;
+                    case 'classic_605':
+                        new platformAccessory_Classic_1.BlueAirClassicAccessory(this, existingAccessory);
+                        break;
+                    default:
+                        this.log.error('%s: device type not recognized, contact developer.', device.name);
+                }
             }
             else {
                 // the accessory does not yet exist, so we need to create it
@@ -103,8 +119,23 @@ class BlueAirHomebridgePlatform {
                 accessory.context.uuid = device.uuid;
                 accessory.context.mac = device.mac;
                 accessory.context.userid = device.userid;
+                // retreive model info
+                let info = await this.blueair.getDeviceInfo(device.uuid);
+                this.log.info('%s of type "%s" initialized.', device.name, info.compatibility);
                 // create the accessory handler for the newly create accessory
-                new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
+                switch (info.compatibility) {
+                    case 'classic_280i':
+                        new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
+                        break;
+                    case 'classic_680i':
+                        new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
+                        break;
+                    case 'classic_605':
+                        new platformAccessory_Classic_1.BlueAirClassicAccessory(this, accessory);
+                        break;
+                    default:
+                        this.log.error('%s: device type not recognized, contact developer.', device.name);
+                }
                 // link the accessory to your platform
                 this.api.registerPlatformAccessories(settings_1.PLUGIN_NAME, settings_1.PLATFORM_NAME, [accessory]);
             }
