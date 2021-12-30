@@ -70,6 +70,9 @@ class BlueAirHomebridgePlatform {
             this.log.error('Failed to get list of devices. Check BlueAir App.');
             return false;
         }
+        // retrieve AWS devices
+        await this.blueair.loginAWS();
+        await this.blueair.getDevicesAWS();
         // loop over the discovered devices and register each one if it has not already been registered
         for (const device of this.blueair.devices) {
             // generate a unique id for the accessory this should be generated from

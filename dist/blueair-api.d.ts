@@ -7,11 +7,15 @@ export declare class BlueAirApi {
     private base_API_url;
     private homehost;
     private authToken;
+    private idtoken;
+    private authorization;
     private log;
     constructor(log: Logger, username: string, password: string);
     getHomehost(): Promise<boolean>;
     login(): Promise<boolean>;
     getDevices(): Promise<boolean>;
+    loginAWS(): Promise<boolean>;
+    getDevicesAWS(): Promise<boolean>;
     getDeviceAttributes(deviceuuid: string): Promise<any>;
     getDeviceInfo(deviceuuid: string): Promise<any>;
     getDeviceDatapoint(deviceuuid: string): Promise<false | {

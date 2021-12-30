@@ -4,6 +4,7 @@ import util from 'util';
 
 import {
   BLUEAIR_APIKEY,
+  BLUEAIR_AWS_APIKEY,
 } from './settings';
 
 export class BlueAirApi {
@@ -17,6 +18,10 @@ export class BlueAirApi {
     private base_API_url: string;
     private homehost!: string;
     private authToken!: string;
+
+    // AWS
+    private idtoken!: string;
+    private authorization!: string;
 
     private log: Logger;
 
@@ -129,6 +134,123 @@ export class BlueAirApi {
       this.log.info('Found %s devices.', this.devices.length);
 
       return true;
+    }
+
+    // login AWS
+    async loginAWS() {
+
+      // Reset the API call time.
+      const now = Date.now();
+      this.lastAuthenticateCall = now;
+
+      const url: string = 'https://accounts.us1.gigya.com/accounts.login';
+
+      // details of form to be submitted
+      const details = {
+        'apikey': BLUEAIR_AWS_APIKEY,
+        'context': this.username,
+        'format': 'json',
+        'gmid': 'gmid.ver4.AcbH1t5dtQ.5lNyeRTZx_2tix9_CmkPET0LEKzlZj3aCQKDGgQFPAQbhtIofo_8zt1qF1rGI3rv.x2GCFpIfGXRZCwYU9j9H-Y9QDUW2K0W3-EvUgowRvyeHm4ztNDo3va17ftl263VkgXcfxLfOBvpcWPLy732UoA.sc3',
+        'httpStatusCodes': 'false',
+        'include': 'profile,data,emails,subscriptions,preferences,',
+        'includeUserInfo': 'true',
+        'lang': 'en-US',
+        'loginID': this.username,
+        'loginMode': 'standard',
+        'nonce': '1640811370_129463292',
+        'password': this.password,
+        'riskContext': '{"b0":40990,"b2":2,"b4":2,"b5":1}',
+        'sdk': 'ios_swift_1.2.2',
+        'sessionExpiration': '0',
+        'source': 'showScreenSet',
+        'targetEnv': 'mobile',
+        'ucid': '5vRhzJ1VY4Q4xYlCcXCTtA',     
+      }
+
+      // encode into URL 
+      let formBody: string[] = [];
+      for (let property in details) {
+        let encodedKey = encodeURIComponent(property);
+        let encodedValue = encodeURIComponent(details[property]);
+        formBody.push(encodedKey + "=" + encodedValue);
+      }
+      let formBody_joined: string = formBody.join("&");
+
+      let response;
+      try{
+        response = await fetchTimeout(url, {
+          method: 'POST',
+          headers: {
+            'Host': 'accounts.us1.gigya.com',
+            'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+            'Connection': 'keep-alive',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Content-Length': '754',
+            'Cache-Control': 'no-cache',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formBody_joined,
+        }, 5000, 'Time out on BlueAir AWS connection.');
+      } catch(error) {
+        this.log.error('BlueAir AWS API: error - %s', error);
+        return false;
+      }
+
+      const headers = await response.headers;
+      this.log.info('Headers:', headers)
+
+      let data;
+      data = await response.json();
+      this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+
+      this.authorization = data.sessionInfo.sessionToken;
+      this.idtoken = data.sessionInfo.sessionSecret;
+
+      this.log.info('AWS idtoken: %s', this.idtoken);
+      this.log.info('AWS authorization: %s', this.authorization);
+      
+      return true;
+    }
+
+    // get devices AWS
+    async getDevicesAWS() {
+      const url: string = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices'
+
+      let response;
+      try{
+        response = await fetchTimeout(url, {
+          method: 'GET',
+          headers: {
+            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Connection': 'keep-alive',
+            'idtoken': this.idtoken,
+            'Accept': '*/*',
+            'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+            'Authorization': 'Bearer ' + this.authorization,
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+        }, 5000, 'Time out on BlueAir AWS connection.');
+      } catch(error) {
+        this.log.error('BlueAir AWS API: error - %s', error);
+        return false;
+      }
+
+      let data;
+      try{
+        data = await response.json();
+        this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+      } catch(error) {
+        // if cannot parse response
+        this.log.error('BlueAir AWS API: error parsing json. %s', data);
+        return false;
+      }      
+
+      //this.devices = data;
+      this.log.info('Found %s devices.', this.devices.length);
+
+      return true;      
+
     }
 
     // retrieve per device attributes
