@@ -5,6 +5,7 @@ import util from 'util';
 import {
   BLUEAIR_APIKEY,
   BLUEAIR_AWS_APIKEY,
+  BLUEAIR_DEVICE_WAIT,
 } from './settings';
 
 export class BlueAirApi {
@@ -54,7 +55,7 @@ export class BlueAirApi {
           headers: {
             'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
           },
-        }, 5000, 'Time out on BlueAir connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
       } catch(error) {
         this.log.error('BlueAir API: error - %s', error);
         return false;
@@ -84,7 +85,7 @@ export class BlueAirApi {
             'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
             'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64'),
           },
-        }, 5000, 'Time out on BlueAir connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
       } catch(error) {
         this.log.error('BlueAir API: error - %s', error);
         return false;
@@ -114,7 +115,7 @@ export class BlueAirApi {
             'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
             'X-AUTH-TOKEN': this.authToken,
           },
-        }, 5000, 'Time out on BlueAir connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
       } catch(error) {
         this.log.error('BlueAir API: error - %s', error);
         return false;
@@ -196,7 +197,7 @@ export class BlueAirApi {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           body: formBody_joined,
-        }, 5000, 'Time out on BlueAir AWS connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
       } catch(error) {
         this.log.error('BlueAir AWS API: error - %s', error);
         return false;
@@ -234,7 +235,7 @@ export class BlueAirApi {
             'Authorization': 'Bearer ' + this.authorization,
             'Accept-Language': 'en-US,en;q=0.9',
           },
-        }, 5000, 'Time out on BlueAir AWS connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
       } catch(error) {
         this.log.error('BlueAir AWS API: error - %s', error);
         return false;
@@ -494,7 +495,7 @@ export class BlueAirApi {
             'X-AUTH-TOKEN': this.authToken,
           },
           body: JSON.stringify(requestbody),
-        }, 5000, 'Time out on BlueAir connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
       } catch(error) {
         this.log.error('BlueAir API: error - %s', error);
         return false;
@@ -519,7 +520,7 @@ export class BlueAirApi {
             'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
             'X-AUTH-TOKEN': this.authToken,
           },
-        }, 5000, 'Time out on BlueAir connection.');
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
       } catch(error) {
         this.log.error('BlueAir API: error - %s', error);
         return false;
