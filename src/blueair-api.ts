@@ -131,6 +131,11 @@ export class BlueAirApi {
       }
 
       this.devices = data;
+      if(this.devices === undefined) {
+        this.log.error('No devices found. Response from server below:');
+        this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+        return false;
+      }
       this.log.info('Found %s devices.', this.devices.length);
 
       return true;
@@ -143,7 +148,7 @@ export class BlueAirApi {
       const now = Date.now();
       this.lastAuthenticateCall = now;
 
-      const url: string = 'https://accounts.us1.gigya.com/accounts.login';
+      const url = 'https://accounts.us1.gigya.com/accounts.login';
 
       // details of form to be submitted
       const details = {
@@ -168,13 +173,13 @@ export class BlueAirApi {
       }
 
       // encode into URL 
-      let formBody: string[] = [];
-      for (let property in details) {
-        let encodedKey = encodeURIComponent(property);
-        let encodedValue = encodeURIComponent(details[property]);
-        formBody.push(encodedKey + "=" + encodedValue);
+      const formBody: string[] = [];
+      for (const property in details) {
+        const encodedKey = encodeURIComponent(property);
+        const encodedValue = encodeURIComponent(details[property]);
+        formBody.push(encodedKey + '=' + encodedValue);
       }
-      let formBody_joined: string = formBody.join("&");
+      const formBody_joined: string = formBody.join('&');
 
       let response;
       try{
@@ -200,22 +205,21 @@ export class BlueAirApi {
       const headers = await response.headers;
       this.log.info('Headers:', headers)
 
-      let data;
-      data = await response.json();
+      const data = await response.json();
       this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
 
-      this.authorization = data.sessionInfo.sessionToken;
-      this.idtoken = data.sessionInfo.sessionSecret;
+      this.idtoken = data.sessionInfo.sessionToken;
+      this.authorization = data.sessionInfo.sessionSecret;
 
-      this.log.info('AWS idtoken: %s', this.idtoken);
-      this.log.info('AWS authorization: %s', this.authorization);
+      //this.log.info('AWS idtoken: %s', this.idtoken);
+      //this.log.info('AWS authorization: %s', this.authorization);
       
       return true;
     }
 
-    // get devices AWS
+    // get devices AWS - does not work
     async getDevicesAWS() {
-      const url: string = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices'
+      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices'
 
       let response;
       try{
@@ -247,7 +251,7 @@ export class BlueAirApi {
       }      
 
       //this.devices = data;
-      this.log.info('Found %s devices.', this.devices.length);
+      //this.log.info('Found %s devices.', this.devices.length);
 
       return true;      
 

@@ -100,6 +100,11 @@ class BlueAirApi {
             return false;
         }
         this.devices = data;
+        if (this.devices === undefined) {
+            this.log.error('No devices found. Response from server below:');
+            this.log.info(util_1.default.inspect(data, { colors: true, sorted: true, depth: 6 }));
+            return false;
+        }
         this.log.info('Found %s devices.', this.devices.length);
         return true;
     }
@@ -131,13 +136,13 @@ class BlueAirApi {
             'ucid': '5vRhzJ1VY4Q4xYlCcXCTtA',
         };
         // encode into URL 
-        let formBody = [];
-        for (let property in details) {
-            let encodedKey = encodeURIComponent(property);
-            let encodedValue = encodeURIComponent(details[property]);
-            formBody.push(encodedKey + "=" + encodedValue);
+        const formBody = [];
+        for (const property in details) {
+            const encodedKey = encodeURIComponent(property);
+            const encodedValue = encodeURIComponent(details[property]);
+            formBody.push(encodedKey + '=' + encodedValue);
         }
-        let formBody_joined = formBody.join("&");
+        const formBody_joined = formBody.join('&');
         let response;
         try {
             response = await (0, fetch_timeout_1.default)(url, {
@@ -161,16 +166,15 @@ class BlueAirApi {
         }
         const headers = await response.headers;
         this.log.info('Headers:', headers);
-        let data;
-        data = await response.json();
+        const data = await response.json();
         this.log.info(util_1.default.inspect(data, { colors: true, sorted: true, depth: 6 }));
-        this.authorization = data.sessionInfo.sessionToken;
-        this.idtoken = data.sessionInfo.sessionSecret;
-        this.log.info('AWS idtoken: %s', this.idtoken);
-        this.log.info('AWS authorization: %s', this.authorization);
+        this.idtoken = data.sessionInfo.sessionToken;
+        this.authorization = data.sessionInfo.sessionSecret;
+        //this.log.info('AWS idtoken: %s', this.idtoken);
+        //this.log.info('AWS authorization: %s', this.authorization);
         return true;
     }
-    // get devices AWS
+    // get devices AWS - does not work
     async getDevicesAWS() {
         const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
         let response;
@@ -203,7 +207,7 @@ class BlueAirApi {
             return false;
         }
         //this.devices = data;
-        this.log.info('Found %s devices.', this.devices.length);
+        //this.log.info('Found %s devices.', this.devices.length);
         return true;
     }
     // retrieve per device attributes
