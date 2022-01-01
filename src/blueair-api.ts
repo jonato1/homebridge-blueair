@@ -209,11 +209,11 @@ export class BlueAirApi {
       const data = await response.json();
       this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
 
-      this.idtoken = data.sessionInfo.sessionToken;
-      this.authorization = data.sessionInfo.sessionSecret;
+      this.idtoken = data.UID;
+      this.authorization = data.UIDSignature;
 
-      //this.log.info('AWS idtoken: %s', this.idtoken);
-      //this.log.info('AWS authorization: %s', this.authorization);
+      this.log.info('AWS idtoken: %s', this.idtoken);
+      this.log.info('AWS authorization: %s', this.authorization);
       
       return true;
     }
