@@ -164,8 +164,14 @@ class BlueAirHomebridgePlatform {
             case 'classic_280i':
                 new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
                 break;
+            case 'classic_480i':
+                new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
+                break;
             case 'classic_680i':
                 new platformAccessory_1.BlueAirPlatformAccessory(this, accessory);
+                break;
+            case 'calssic_405':
+                new platformAccessory_Classic_1.BlueAirClassicAccessory(this, accessory);
                 break;
             case 'classic_605':
                 new platformAccessory_Classic_1.BlueAirClassicAccessory(this, accessory);

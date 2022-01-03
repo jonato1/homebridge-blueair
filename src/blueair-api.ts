@@ -171,7 +171,7 @@ export class BlueAirApi {
         'source': 'showScreenSet',
         'targetEnv': 'mobile',
         'ucid': '5vRhzJ1VY4Q4xYlCcXCTtA',     
-      }
+      };
 
       // encode into URL 
       const formBody: string[] = [];
@@ -204,7 +204,7 @@ export class BlueAirApi {
       }
 
       const headers = await response.headers;
-      this.log.info('Headers:', headers)
+      this.log.info('Headers:', headers);
 
       const data = await response.json();
       this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
@@ -220,7 +220,7 @@ export class BlueAirApi {
 
     // get devices AWS - does not work
     async getDevicesAWS() {
-      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices'
+      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
 
       let response;
       try{
