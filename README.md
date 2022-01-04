@@ -30,11 +30,12 @@ npm install homebridge-blueair
 
 - ***Easy* configuration - all you need is your username and password to get started.** The defaults work for the vast majority of users.
 
-- **Automatic detection and configuration of multiple Kumo devices.** By default - all of your supported Kumo devices are made available in HomeKit.
+- **Automatic detection and configuration of multiple BlueAir devices.** By default - all of your supported devices are made available in HomeKit.
 
 ### To do
 
-- The current plugin does not recognize the device type but this could be added in the future with help from other users. Please contact me if you are willing to help.
+- Add support for AWS-based API (needed for HealthProtect and DustMagnet devices). Needs help from others. See Issue #1.
+- Add support for additional models. Match capabilities to Homekit device. See Issue #6.
 
 ## Plugin Configuration
 If you choose to configure this plugin directly instead of using the [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x), you'll need to add the platform to your `config.json` in your home directory inside `.homebridge`.
