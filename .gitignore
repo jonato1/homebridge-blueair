@@ -1,5 +1,8 @@
 # Ignore compiled code
-dist
+dist/
+.DS_Store
+._DS_Store
+src/.*
 
 # ------------- Defaults ------------- #
 
