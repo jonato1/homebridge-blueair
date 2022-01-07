@@ -230,6 +230,9 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       case 'classic_605':
         new BlueAirClassicAccessory(this, accessory);
         break;
+      case 'sense+':
+        new BlueAirClassicAccessory(this, accessory);
+        break;
       default:
         this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
     }
