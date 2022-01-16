@@ -221,6 +221,9 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       case 'classic_680i': 
         new BlueAirPlatformAccessory(this, accessory);
         break;
+      case 'aware': 
+        new BlueAirPlatformAccessory(this, accessory);
+        break;
       case 'classic_205':
         new BlueAirClassicAccessory(this, accessory);
         break;
