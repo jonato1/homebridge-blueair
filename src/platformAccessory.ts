@@ -460,8 +460,15 @@ export class BlueAirPlatformAccessory {
       } else {
         this.platform.log.debug('%s: no PM10 value found.', this.accessory.displayName);
       }
-      this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-      this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
+
+      // Characteristic triggers warning if value over 1000      
+      if(this.accessory.context.measurements.PM2_5Density < 1000){ 
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
+        this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
+      } else {
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, 1000);
+        this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, 1000);
+      }
 
       // Characteristic triggers warning if value over 1000
       if(this.accessory.context.measurements.voc < 1000){ 
