@@ -227,10 +227,10 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       case 'classic_205':
         new BlueAirClassicAccessory(this, accessory);
         break;
-      case 'calssic_405':
+      case 'classic_405':
         new BlueAirClassicAccessory(this, accessory);
         break;
-      case 'calssic_505':
+      case 'classic_505':
         new BlueAirClassicAccessory(this, accessory);
         break;
       case 'classic_605':
