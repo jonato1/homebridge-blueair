@@ -89,8 +89,8 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     // retrieve AWS devices - not yet functional
-    await this.blueair.loginAWS();
-    await this.blueair.getDevicesAWS();
+    // await this.blueair.loginAWS();
+    // await this.blueair.getDevicesAWS();
 
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of this.blueair.devices) { 
