@@ -5,6 +5,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 
 import { BlueAirPlatformAccessory } from './platformAccessory';
 import { BlueAirClassicAccessory } from './platformAccessory_Classic';
+import { BlueAirAwareAccessory } from './platformAccessory_Aware';
 
 /**
  * HomebridgePlatform
@@ -222,7 +223,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         new BlueAirPlatformAccessory(this, accessory);
         break;
       case 'aware': 
-        new BlueAirPlatformAccessory(this, accessory);
+        new BlueAirAwareAccessory(this, accessory);
         break;
       case 'classic_205':
         new BlueAirClassicAccessory(this, accessory);
