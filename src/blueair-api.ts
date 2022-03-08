@@ -204,17 +204,18 @@ export class BlueAirApi {
       }
 
       const headers = await response.headers;
-      this.log.info('Headers:', headers);
-
-      const data = await response.json();
-      this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+      const data = await response.json();      
 
       this.idtoken = data.UID;
       this.authorization = data.UIDSignature;
 
+      this.log.info('** AWS login begin **');        
+      this.log.info('Headers:', headers);
+      this.log.info(util.inspect(data, { colors: true, sorted: true}));
       this.log.info('AWS idtoken: %s', this.idtoken);
       this.log.info('AWS authorization: %s', this.authorization);
-      
+      this.log.info('** AWS login end **');
+
       return true;
     }
 
@@ -240,20 +241,21 @@ export class BlueAirApi {
         this.log.error('BlueAir AWS API: error - %s', error);
         return false;
       }
-
+ 
       let data;
       try{
         data = await response.json();
-        this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
       } catch(error) {
         // if cannot parse response
         this.log.error('BlueAir AWS API: error parsing json. %s', data);
         return false;
       }      
-
-      //this.devices = data;
-      //this.log.info('Found %s devices.', this.devices.length);
-
+      
+      this.log.info('** AWS devices - begin **');
+      this.log.info(util.inspect(data, { colors: true, sorted: true}));
+      this.log.info('Found %s devices.', this.devices.length);
+      this.log.info('** AWS devices - end **');
+      
       return true;      
 
     }

@@ -17,6 +17,11 @@
             "type": "string",
             "required": true
         },
+        "enableAWS": {
+            "title": "Enable AWS API connection (only for debugging currently)",
+            "type": "boolean",
+            "required": false
+        },
         "options": {
             "title": "Feature Options",
             "type": "array",
