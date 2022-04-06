@@ -154,23 +154,9 @@ export class BlueAirApi {
       // details of form to be submitted
       const details = {
         'apikey': BLUEAIR_AWS_APIKEY,
-        'context': this.username,
-        'format': 'json',
-        'gmid': 'gmid.ver4.AcbH1t5dtQ.5lNyeRTZx_2tix9_CmkPET0LEKzlZj3aCQKDGgQFPAQbhtIofo_8zt1qF1rGI3rv.x2GCFpIfGXRZCwYU9j9H-Y9QDUW2K0W3-EvUgowRvyeHm4ztNDo3va17ftl263VkgXcfxLfOBvpcWPLy732UoA.sc3',
-        'httpStatusCodes': 'false',
-        'include': 'profile,data,emails,subscriptions,preferences,',
-        'includeUserInfo': 'true',
-        'lang': 'en-US',
         'loginID': this.username,
-        'loginMode': 'standard',
-        'nonce': '1640811370_129463292',
         'password': this.password,
-        'riskContext': '{"b0":40990,"b2":2,"b4":2,"b5":1}',
-        'sdk': 'ios_swift_1.2.2',
-        'sessionExpiration': '0',
-        'source': 'showScreenSet',
-        'targetEnv': 'mobile',
-        'ucid': '5vRhzJ1VY4Q4xYlCcXCTtA',     
+        'targetEnv': 'mobile',   
       };
 
       // encode into URL 
@@ -192,7 +178,6 @@ export class BlueAirApi {
             'Connection': 'keep-alive',
             'Accept': '*/*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Content-Length': '754',
             'Cache-Control': 'no-cache',
             'Content-Type': 'application/x-www-form-urlencoded',
           },
