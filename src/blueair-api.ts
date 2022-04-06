@@ -20,8 +20,15 @@ export class BlueAirApi {
     private homehost!: string;
     private authToken!: string;
 
-    // AWS
-    private idtoken!: string;
+    // AWS Session Variables
+    private sessionToken!: string;
+    private sessionSecret!: string;
+
+    // AWS Tokens
+    private jwtToken!: string;
+    private accessToken!: string;
+
+    // Old AWS Variable(s) - TODO: Confirm if can be deleted
     private authorization!: string;
 
     private log: Logger;
@@ -153,24 +160,10 @@ export class BlueAirApi {
 
       // details of form to be submitted
       const details = {
-        'apikey': BLUEAIR_AWS_APIKEY,
-        'context': this.username,
-        'format': 'json',
-        'gmid': 'gmid.ver4.AcbH1t5dtQ.5lNyeRTZx_2tix9_CmkPET0LEKzlZj3aCQKDGgQFPAQbhtIofo_8zt1qF1rGI3rv.x2GCFpIfGXRZCwYU9j9H-Y9QDUW2K0W3-EvUgowRvyeHm4ztNDo3va17ftl263VkgXcfxLfOBvpcWPLy732UoA.sc3',
-        'httpStatusCodes': 'false',
-        'include': 'profile,data,emails,subscriptions,preferences,',
-        'includeUserInfo': 'true',
-        'lang': 'en-US',
-        'loginID': this.username,
-        'loginMode': 'standard',
-        'nonce': '1640811370_129463292',
-        'password': this.password,
-        'riskContext': '{"b0":40990,"b2":2,"b4":2,"b5":1}',
-        'sdk': 'ios_swift_1.2.2',
-        'sessionExpiration': '0',
-        'source': 'showScreenSet',
-        'targetEnv': 'mobile',
-        'ucid': '5vRhzJ1VY4Q4xYlCcXCTtA',     
+          'apikey': BLUEAIR_AWS_APIKEY,
+          'loginID': this.username,
+          'password': this.password,
+          'targetEnv': 'mobile',
       };
 
       // encode into URL 
@@ -192,7 +185,6 @@ export class BlueAirApi {
             'Connection': 'keep-alive',
             'Accept': '*/*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Content-Length': '754',
             'Cache-Control': 'no-cache',
             'Content-Type': 'application/x-www-form-urlencoded',
           },
@@ -204,16 +196,95 @@ export class BlueAirApi {
       }
 
       const headers = await response.headers;
-      const data = await response.json();      
+      const data = await response.json();
 
-      this.idtoken = data.UID;
-      this.authorization = data.UIDSignature;
+      this.sessionToken = data.sessionInfo.sessionToken;
+      this.sessionSecret = data.sessionInfo.sessionSecret;
+
+      // GET JWT Token
+
+      const jwtUrl = 'https://accounts.us1.gigya.com/accounts.getJWT';
+
+      // details of form to be submitted
+      const jwtDetails = {
+          'oauth_token': this.sessionToken,
+          'secret': this.sessionSecret,
+          'targetEnv': 'mobile',
+      };
+
+      // encode into URL
+      const jwtFormBody: string[] = [];
+      for (const jwtProperty in jwtDetails) {
+        const encodedKey = encodeURIComponent(jwtProperty);
+        const encodedValue = encodeURIComponent(jwtDetails[jwtProperty]);
+        jwtFormBody.push(encodedKey + '=' + encodedValue);
+      }
+      const jwtFormBody_joined: string = jwtFormBody.join('&');
+
+      let jwtResponse;
+      try{
+        jwtResponse = await fetchTimeout(jwtUrl, {
+          method: 'POST',
+          headers: {
+              'Host': 'accounts.us1.gigya.com',
+              'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+              'Connection': 'keep-alive',
+              'Accept': '*/*',
+              'Accept-Language': 'en-US,en;q=0.9',
+              'Cache-Control': 'no-cache',
+              'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: jwtFormBody_joined,
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
+      } catch(error) {
+        this.log.error('BlueAir AWS API: error - %s', error);
+        return false;
+      }
+
+      const jwtHeaders = await jwtResponse.headers;
+      const jwtData = await jwtResponse.json();
+
+      this.jwtToken = jwtData.id_token;
+      //this.authorization = data.UIDSignature;
+
+      // Use JWT Token to get Access Token for Execute API endpoints
+
+      const executeUrl = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/login';
+
+      let executeResponse;
+      try{
+        executeResponse = await fetchTimeout(executeUrl, {
+          method: 'POST',
+          headers: {
+            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Connection': 'keep-alive',
+            'idtoken': this.jwtToken,
+            'Accept': '*/*',
+            'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+            'Authorization': 'Bearer ' + this.jwtToken,
+            'Accept-Language': 'en-US,en;q=0.9',
+          },
+        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
+      } catch(error) {
+        this.log.error('BlueAir AWS API: error - %s', error);
+        return false;
+      }
+
+      const executeHeaders = await executeResponse.headers;
+      const executeData = await executeResponse.json();
+
+      this.accessToken = executeData.access_token;
 
       this.log.info('** AWS login begin **');        
       this.log.info('Headers:', headers);
       this.log.info(util.inspect(data, { colors: true, sorted: true}));
-      this.log.info('AWS idtoken: %s', this.idtoken);
-      this.log.info('AWS authorization: %s', this.authorization);
+      this.log.info('JWT Headers:', jwtHeaders);
+      this.log.info(util.inspect(jwtData, { colors: true, sorted: true}));
+      this.log.info('AWS jwtToken: %s', this.jwtToken);
+      this.log.info('Execute Headers:', executeHeaders);
+      this.log.info(util.inspect(executeData, { colors: true, sorted: true}));
+      this.log.info('AWS accessToken: %s', this.accessToken);
+      //this.log.info('AWS authorization: %s', this.authorization);
       this.log.info('** AWS login end **');
 
       return true;
@@ -230,10 +301,10 @@ export class BlueAirApi {
           headers: {
             'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
             'Connection': 'keep-alive',
-            'idtoken': this.idtoken,
+            'idtoken': this.accessToken,
             'Accept': '*/*',
             'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
-            'Authorization': 'Bearer ' + this.authorization,
+            'Authorization': 'Bearer ' + this.accessToken,
             'Accept-Language': 'en-US,en;q=0.9',
           },
         }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
