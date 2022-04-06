@@ -10,525 +10,578 @@ import {
 
 export class BlueAirApi {
 
-    devices;
+  devices;
 
-    private username: string;
-    private password: string;
+  private username: string;
+  private password: string;
 
-    private lastAuthenticateCall!: number;
-    private base_API_url: string;
-    private homehost!: string;
-    private authToken!: string;
+  private lastAuthenticateCall!: number;
+  private base_API_url: string;
+  private homehost!: string;
+  private authToken!: string;
 
-    // AWS
-    private idtoken!: string;
-    private authorization!: string;
+  // AWS Session Variables
+  private sessionToken!: string;
+  private sessionSecret!: string;
 
-    private log: Logger;
+  // AWS JWT Token
+  private idtoken!: string;
 
-    // initiate instance with login information
-    constructor(log: Logger, username: string, password: string) {
-      this.log = log;
+  // Old AWS Variable(s) - TODO: Confirm if can be deleted
+  private authorization!: string;
 
-      if(username === undefined){
-        throw new Error('BlueAir API: no username specified.');
-      }
+  private log: Logger;
 
-      if(password === undefined){
-        throw new Error('BlueAir API: no password specified.');
-      }
-      this.username = username;
-      this.password = password;
-      this.devices = [];
+  // initiate instance with login information
+  constructor(log: Logger, username: string, password: string) {
+    this.log = log;
 
-      this.base_API_url = 'https://api.blueair.io/v2/user/' + this.username + '/homehost/';
-      this.log.info('base_API_url: %s', this.base_API_url);
+    if(username === undefined){
+      throw new Error('BlueAir API: no username specified.');
     }
 
-    // get home host for specified user
-    async getHomehost() {
-        
-      let response;
-      try{
-        response = await fetchTimeout(this.base_API_url, {
-          method: 'GET',
-          headers: {
-            'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
-          },
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
-      } catch(error) {
-        this.log.error('BlueAir API: error - %s', error);
-        return false;
-      }
+    if(password === undefined){
+      throw new Error('BlueAir API: no password specified.');
+    }
+    this.username = username;
+    this.password = password;
+    this.devices = [];
 
-      const body: string = await response.text();
-      this.homehost = body.replace(/['"]+/g, ''); 
-      this.log.info('Got homehost: %s', this.homehost);
+    this.base_API_url = 'https://api.blueair.io/v2/user/' + this.username + '/homehost/';
+    this.log.info('base_API_url: %s', this.base_API_url);
+  }
 
-      return true;
+  // get home host for specified user
+  async getHomehost() {
+
+    let response;
+    try{
+      response = await fetchTimeout(this.base_API_url, {
+        method: 'GET',
+        headers: {
+          'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
+        },
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
+    } catch(error) {
+      this.log.error('BlueAir API: error - %s', error);
+      return false;
     }
 
-    // login
-    async login() {
+    const body: string = await response.text();
+    this.homehost = body.replace(/['"]+/g, '');
+    this.log.info('Got homehost: %s', this.homehost);
 
-      // Reset the API call time.
-      const now = Date.now();
-      this.lastAuthenticateCall = now;
+    return true;
+  }
 
-      const url: string = 'https://' + this.homehost + '/v2/user/' + this.username + '/login/';
+  // login
+  async login() {
 
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'GET',
-          headers: {
-            'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
-            'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64'),
-          },
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
-      } catch(error) {
-        this.log.error('BlueAir API: error - %s', error);
-        return false;
-      }
+    // Reset the API call time.
+    const now = Date.now();
+    this.lastAuthenticateCall = now;
 
-      const headers = await response.headers;
-      this.authToken = headers.get('x-auth-token');
+    const url: string = 'https://' + this.homehost + '/v2/user/' + this.username + '/login/';
 
-      if (this.authToken == null){
-        this.log.error('BlueAir API: Failed to obtain x-auth-token.');
-        return false;
-      }
-      
-      this.log.info('x-auth-token:', this.authToken);
-      return true;
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'GET',
+        headers: {
+          'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
+          'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64'),
+        },
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
+    } catch(error) {
+      this.log.error('BlueAir API: error - %s', error);
+      return false;
     }
 
-    // get devices
-    async getDevices() {
-      const url: string = 'https://' + this.homehost + '/v2/owner/' + this.username + '/device/';
+    const headers = await response.headers;
+    this.authToken = headers.get('x-auth-token');
 
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'GET',
-          headers: {
-            'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
-            'X-AUTH-TOKEN': this.authToken,
-          },
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
-      } catch(error) {
-        this.log.error('BlueAir API: error - %s', error);
-        return false;
-      }           
-
-      let data;
-      try{
-        data = await response.json();
-        this.log.debug(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
-      } catch(error) {
-        // if cannot parse response
-        this.log.error('BlueAir API: error parsing json. %s', data);
-        return false;
-      }
-
-      this.devices = data;
-      if(this.devices === undefined) {
-        this.log.error('No devices found. Response from server below:');
-        this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
-        return false;
-      }
-      this.log.info('Found %s devices.', this.devices.length);
-
-      return true;
+    if (this.authToken == null){
+      this.log.error('BlueAir API: Failed to obtain x-auth-token.');
+      return false;
     }
 
-    // login AWS
-    async loginAWS() {
+    this.log.info('x-auth-token:', this.authToken);
+    return true;
+  }
 
-      // Reset the API call time.
-      const now = Date.now();
-      this.lastAuthenticateCall = now;
+  // get devices
+  async getDevices() {
+    const url: string = 'https://' + this.homehost + '/v2/owner/' + this.username + '/device/';
 
-      const url = 'https://accounts.us1.gigya.com/accounts.login';
-
-      // details of form to be submitted
-      const details = {
-        'apikey': BLUEAIR_AWS_APIKEY,
-        'loginID': this.username,
-        'password': this.password,
-        'targetEnv': 'mobile',   
-      };
-
-      // encode into URL 
-      const formBody: string[] = [];
-      for (const property in details) {
-        const encodedKey = encodeURIComponent(property);
-        const encodedValue = encodeURIComponent(details[property]);
-        formBody.push(encodedKey + '=' + encodedValue);
-      }
-      const formBody_joined: string = formBody.join('&');
-
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'POST',
-          headers: {
-            'Host': 'accounts.us1.gigya.com',
-            'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
-            'Connection': 'keep-alive',
-            'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cache-Control': 'no-cache',
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: formBody_joined,
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
-      } catch(error) {
-        this.log.error('BlueAir AWS API: error - %s', error);
-        return false;
-      }
-
-      const headers = await response.headers;
-      const data = await response.json();      
-
-      this.idtoken = data.UID;
-      this.authorization = data.UIDSignature;
-
-      this.log.info('** AWS login begin **');        
-      this.log.info('Headers:', headers);
-      this.log.info(util.inspect(data, { colors: true, sorted: true}));
-      this.log.info('AWS idtoken: %s', this.idtoken);
-      this.log.info('AWS authorization: %s', this.authorization);
-      this.log.info('** AWS login end **');
-
-      return true;
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'GET',
+        headers: {
+          'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
+          'X-AUTH-TOKEN': this.authToken,
+        },
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
+    } catch(error) {
+      this.log.error('BlueAir API: error - %s', error);
+      return false;
     }
 
-    // get devices AWS - does not work
-    async getDevicesAWS() {
-      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
+    let data;
+    try{
+      data = await response.json();
+      this.log.debug(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+    } catch(error) {
+      // if cannot parse response
+      this.log.error('BlueAir API: error parsing json. %s', data);
+      return false;
+    }
 
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'GET',
-          headers: {
-            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
-            'Connection': 'keep-alive',
-            'idtoken': this.idtoken,
-            'Accept': '*/*',
-            'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
-            'Authorization': 'Bearer ' + this.authorization,
-            'Accept-Language': 'en-US,en;q=0.9',
-          },
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
-      } catch(error) {
-        this.log.error('BlueAir AWS API: error - %s', error);
-        return false;
+    this.devices = data;
+    if(this.devices === undefined) {
+      this.log.error('No devices found. Response from server below:');
+      this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+      return false;
+    }
+    this.log.info('Found %s devices.', this.devices.length);
+
+    return true;
+  }
+
+  // login AWS
+  async loginAWS() {
+
+    // Reset the API call time.
+    const now = Date.now();
+    this.lastAuthenticateCall = now;
+
+    const url = 'https://accounts.us1.gigya.com/accounts.login';
+
+    // details of form to be submitted
+    const details = {
+      'apikey': BLUEAIR_AWS_APIKEY,
+      'loginID': this.username,
+      'password': this.password,
+      'targetEnv': 'mobile',
+    };
+
+    // encode into URL
+    const formBody: string[] = [];
+    for (const property in details) {
+      const encodedKey = encodeURIComponent(property);
+      const encodedValue = encodeURIComponent(details[property]);
+      formBody.push(encodedKey + '=' + encodedValue);
+    }
+    const formBody_joined: string = formBody.join('&');
+
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'POST',
+        headers: {
+          'Host': 'accounts.us1.gigya.com',
+          'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+          'Connection': 'keep-alive',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formBody_joined,
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
+    } catch(error) {
+      this.log.error('BlueAir AWS API: error - %s', error);
+      return false;
+    }
+
+    const headers = await response.headers;
+    const data = await response.json();
+
+    this.sessionToken = data.sessionInfo.sessionToken;
+    this.sessionSecret = data.sessionInfo.sessionSecret;
+
+    // GET JWT Token
+
+    const jwtUrl = 'https://accounts.us1.gigya.com/accounts.getJWT';
+
+    // details of form to be submitted
+    const jwtDetails = {
+      'oauth_token': this.sessionToken,
+      'secret': this.sessionSecret,
+      'targetEnv': 'mobile',
+    };
+
+    // encode into URL
+    const jwtFormBody: string[] = [];
+    for (const jwtProperty in jwtDetails) {
+      const encodedKey = encodeURIComponent(jwtProperty);
+      const encodedValue = encodeURIComponent(jwtDetails[jwtProperty]);
+      jwtFormBody.push(encodedKey + '=' + encodedValue);
+    }
+    const jwtFormBody_joined: string = jwtFormBody.join('&');
+
+    let jwtResponse;
+    try{
+      jwtResponse = await fetchTimeout(jwtUrl, {
+        method: 'POST',
+        headers: {
+          'Host': 'accounts.us1.gigya.com',
+          'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+          'Connection': 'keep-alive',
+          'Accept': '*/*',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Cache-Control': 'no-cache',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: jwtFormBody_joined,
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
+    } catch(error) {
+      this.log.error('BlueAir AWS API: error - %s', error);
+      return false;
+    }
+
+    const jwtHeaders = await jwtResponse.headers;
+    const jwtData = await jwtResponse.json();
+
+    this.idtoken = jwtData.id_token;
+    //this.authorization = data.UIDSignature;
+
+    this.log.info('** AWS login begin **');
+    this.log.info('Headers:', headers);
+    this.log.info(util.inspect(data, { colors: true, sorted: true}));
+    this.log.info('JWT Headers:', jwtHeaders);
+    this.log.info(util.inspect(jwtData, { colors: true, sorted: true}));
+    this.log.info('AWS idtoken: %s', this.idtoken);
+    //this.log.info('AWS authorization: %s', this.authorization);
+    this.log.info('** AWS login end **');
+
+    return true;
+  }
+
+  // get devices AWS - does not work
+  async getDevicesAWS() {
+    const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
+
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'GET',
+        headers: {
+          'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+          'Connection': 'keep-alive',
+          'idtoken': this.idtoken,
+          'Accept': '*/*',
+          'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
+          'Authorization': 'Bearer ' + this.authorization,
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir AWS connection.');
+    } catch(error) {
+      this.log.error('BlueAir AWS API: error - %s', error);
+      return false;
+    }
+
+    let data;
+    try{
+      data = await response.json();
+    } catch(error) {
+      // if cannot parse response
+      this.log.error('BlueAir AWS API: error parsing json. %s', data);
+      return false;
+    }
+
+    this.log.info('** AWS devices - begin **');
+    this.log.info(util.inspect(data, { colors: true, sorted: true}));
+    this.log.info('Found %s devices.', this.devices.length);
+    this.log.info('** AWS devices - end **');
+
+    return true;
+
+  }
+
+  // retrieve per device attributes
+  async getDeviceAttributes(deviceuuid: string) {
+
+    const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/attributes/';
+
+    const data = await this.getJSONfromResponseBody(url);
+    if(!data){
+      return false;
+    }
+
+    const attributes = (data as Array<any>).reduce((obj, prop) => {
+      obj[prop.name] = prop.currentValue;
+      return obj;
+    }, {});
+
+    return attributes;
+  }
+
+  // retrieve per device information
+  async getDeviceInfo(deviceuuid: string) {
+    const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/info/';
+
+    const info = await this.getJSONfromResponseBody(url);
+    if(!info){
+      return false;
+    }
+
+    return info;
+  }
+
+  // retirieve per device datapoint
+  async getDeviceDatapoint(deviceuuid: string) {
+    const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/datapoint/0/last/0/';
+
+    interface datapoint {
+      datapoints,
+      end: number,
+      sensors: Array<string>,
+      start: number,
+      units: Array<string>,
+      uuid: string,
+    }
+
+    const data = await this.getJSONfromResponseBody(url);
+    if(!data){
+      return false;
+    }
+
+    const json: datapoint = data;
+    let pm, pm10, tmp, hum, co2, voc, allpollu;
+
+    for (let i = 0; i < json.sensors.length; i++) {
+      switch(json.sensors[i]) {
+        case 'pm':
+          pm = json.datapoints[0][i];
+          break;
+
+        case 'pm10':
+          pm10 = json.datapoints[0][i];
+          break;
+
+        case 'tmp':
+          tmp = json.datapoints[0][i];
+          break;
+
+        case 'hum':
+          hum = json.datapoints[0][i];
+          break;
+
+        case 'co2':
+          co2 = json.datapoints[0][i];
+          break;
+
+        case 'voc':
+          voc = json.datapoints[0][i];
+          break;
+
+        case 'allpollu':
+          allpollu = json.datapoints[0][i];
+          break;
+
+        default:
+          break;
       }
- 
-      let data;
-      try{
-        data = await response.json();
-      } catch(error) {
-        // if cannot parse response
-        this.log.error('BlueAir AWS API: error parsing json. %s', data);
-        return false;
-      }      
-      
-      this.log.info('** AWS devices - begin **');
-      this.log.info(util.inspect(data, { colors: true, sorted: true}));
-      this.log.info('Found %s devices.', this.devices.length);
-      this.log.info('** AWS devices - end **');
-      
-      return true;      
-
     }
 
-    // retrieve per device attributes
-    async getDeviceAttributes(deviceuuid: string) {
+    const measurements = {
+      pm: pm,
+      pm10: pm10,
+      tmp: tmp,
+      hum: hum,
+      co2: co2,
+      voc: voc,
+      allpollu: allpollu,
+    };
 
-      const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/attributes/';
-        
-      const data = await this.getJSONfromResponseBody(url);
-      if(!data){
-        return false;
-      }
+    return measurements;
 
-      const attributes = (data as Array<any>).reduce((obj, prop) => {
-        obj[prop.name] = prop.currentValue;
-        return obj;         
-      }, {});
+  }
 
-      return attributes;
+
+  // retirieve per device datapoint
+  async getDeviceHistory(deviceuuid: string) {
+
+    const timenow: Date = new Date();
+    const timelastmonth: Date = new Date();
+    timelastmonth.setMonth(timelastmonth.getMonth() - 1);
+
+    const tsnow = timenow.toISOString();
+    const tslastmonth = timelastmonth.toISOString();
+
+    const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/datapoint/' + tslastmonth + '/' + tsnow + '/600/';
+
+    interface datapoint {
+      datapoints,
+      end: number,
+      sensors: Array<string>,
+      start: number,
+      units: Array<string>,
+      uuid: string,
     }
 
-    // retrieve per device information
-    async getDeviceInfo(deviceuuid: string) {
-      const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/info/';
-        
-      const info = await this.getJSONfromResponseBody(url);
-      if(!info){
-        return false;
-      }
-
-      return info;
+    const data = await this.getJSONfromResponseBody(url);
+    if(!data){
+      return false;
     }
 
-    // retirieve per device datapoint
-    async getDeviceDatapoint(deviceuuid: string) {
-      const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/datapoint/0/last/0/';
-    
-        interface datapoint {
-            datapoints,
-            end: number,
-            sensors: Array<string>,
-            start: number,
-            units: Array<string>,
-            uuid: string,
-        }
+    //this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
 
-        const data = await this.getJSONfromResponseBody(url);
-        if(!data){
-          return false;
-        }
+    const json: datapoint = data;
+    const timestamp: number[] = [];
+    const pm: number[] = [];
+    const pm10: number[] = [];
+    const tmp: number[] = [];
+    const hum: number[] = [];
+    const co2: number[] = [];
+    const voc: number[] = [];
+    const allpollu: number[] = [];
 
-        const json: datapoint = data;
-        let pm, pm10, tmp, hum, co2, voc, allpollu;
-        
-        for (let i = 0; i < json.sensors.length; i++) {
-          switch(json.sensors[i]) {
-            case 'pm':
-              pm = json.datapoints[0][i];
-              break;
-
-            case 'pm10':
-              pm10 = json.datapoints[0][i];
-              break;
-
-            case 'tmp':
-              tmp = json.datapoints[0][i];
-              break;
-                
-            case 'hum':
-              hum = json.datapoints[0][i];
-              break;
-                
-            case 'co2':
-              co2 = json.datapoints[0][i];
-              break;
-                
-            case 'voc':
-              voc = json.datapoints[0][i];
-              break;
-                
-            case 'allpollu':
-              allpollu = json.datapoints[0][i];
-              break;
-                
-            default:
-              break;
-          }
-        }
-
-        const measurements = {
-          pm: pm,
-          pm10: pm10,
-          tmp: tmp,
-          hum: hum,
-          co2: co2,
-          voc: voc,
-          allpollu: allpollu,
-        };
-
-        return measurements;
-
-    }
-
-
-    // retirieve per device datapoint
-    async getDeviceHistory(deviceuuid: string) {
-
-      const timenow: Date = new Date();
-      const timelastmonth: Date = new Date();
-      timelastmonth.setMonth(timelastmonth.getMonth() - 1);
-
-      const tsnow = timenow.toISOString();
-      const tslastmonth = timelastmonth.toISOString();
-
-      const url: string = 'https://' + this.homehost + '/v2/device/' + deviceuuid + '/datapoint/' + tslastmonth + '/' + tsnow + '/600/';
-    
-        interface datapoint {
-            datapoints,
-            end: number,
-            sensors: Array<string>,
-            start: number,
-            units: Array<string>,
-            uuid: string,
-        }
-
-        const data = await this.getJSONfromResponseBody(url);
-        if(!data){
-          return false;
-        }
-
-        //this.log.info(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
-
-        const json: datapoint = data;
-        const timestamp: number[] = [];
-        const pm: number[] = [];
-        const pm10: number[] = [];
-        const tmp: number[] = [];
-        const hum: number[] = [];
-        const co2: number[] = [];
-        const voc: number[] = [];
-        const allpollu: number[] = [];
-        
-        if (json.datapoints.length >= 1) {                          
-          for (let i = 0; i < json.sensors.length; i++) {
-            switch(json.sensors[i]) {
-              case 'timestamp':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  timestamp.push(json.datapoints[j][i]);
-                }
-                break;
-
-              case 'pm':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  pm.push(json.datapoints[j][i]);
-                }
-                break;
-
-              case 'pm10':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  pm10.push(json.datapoints[j][i]);
-                }
-                break;
-
-              case 'tmp':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  tmp.push(json.datapoints[j][i]);
-                }
-                break;
-                    
-              case 'hum':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  hum.push(json.datapoints[j][i]);
-                }
-                break;
-                    
-              case 'co2':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  co2.push(json.datapoints[j][i]);
-                }
-                break;
-                    
-              case 'voc':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  voc.push(json.datapoints[j][i]);
-                }
-                break;
-                    
-              case 'allpollu':
-                for (let j = 0; j < json.datapoints.length; j++){
-                  allpollu.push(json.datapoints[j][i]);
-                }
-                break;
-                    
-              default:
-                break;
+    if (json.datapoints.length >= 1) {
+      for (let i = 0; i < json.sensors.length; i++) {
+        switch(json.sensors[i]) {
+          case 'timestamp':
+            for (let j = 0; j < json.datapoints.length; j++){
+              timestamp.push(json.datapoints[j][i]);
             }
-          }
+            break;
 
+          case 'pm':
+            for (let j = 0; j < json.datapoints.length; j++){
+              pm.push(json.datapoints[j][i]);
+            }
+            break;
 
+          case 'pm10':
+            for (let j = 0; j < json.datapoints.length; j++){
+              pm10.push(json.datapoints[j][i]);
+            }
+            break;
+
+          case 'tmp':
+            for (let j = 0; j < json.datapoints.length; j++){
+              tmp.push(json.datapoints[j][i]);
+            }
+            break;
+
+          case 'hum':
+            for (let j = 0; j < json.datapoints.length; j++){
+              hum.push(json.datapoints[j][i]);
+            }
+            break;
+
+          case 'co2':
+            for (let j = 0; j < json.datapoints.length; j++){
+              co2.push(json.datapoints[j][i]);
+            }
+            break;
+
+          case 'voc':
+            for (let j = 0; j < json.datapoints.length; j++){
+              voc.push(json.datapoints[j][i]);
+            }
+            break;
+
+          case 'allpollu':
+            for (let j = 0; j < json.datapoints.length; j++){
+              allpollu.push(json.datapoints[j][i]);
+            }
+            break;
+
+          default:
+            break;
         }
+      }
 
-        const measurements = {
-          timestamp: timestamp,
-          pm: pm,
-          pm10: pm10,
-          tmp: tmp,
-          hum: hum,
-          co2: co2,
-          voc: voc,
-          allpollu: allpollu,
-        };
-
-        return measurements;
 
     }
 
-    // function to send command to BlueAir API url using authentication
-    async sendCommand(url_end: string, setValue: string, name: string, deviceuuid: string): Promise<boolean> {
-        
-      //Build POST request body
-      const requestbody = {
-        'currentValue': setValue,
-        'scope': 'device',
-        'defaultValue': setValue,
-        'name': name,
-        'uuid': deviceuuid,
-      };
+    const measurements = {
+      timestamp: timestamp,
+      pm: pm,
+      pm10: pm10,
+      tmp: tmp,
+      hum: hum,
+      co2: co2,
+      voc: voc,
+      allpollu: allpollu,
+    };
 
-      const url: string = 'https://' + this.homehost + '/v2/device/' + url_end;
+    return measurements;
 
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json;charset=UTF-8',
-            'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
-            'X-AUTH-TOKEN': this.authToken,
-          },
-          body: JSON.stringify(requestbody),
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
-      } catch(error) {
-        this.log.error('BlueAir API: error - %s', error);
-        return false;
-      }
+  }
 
-      const data = await response.json();
+  // function to send command to BlueAir API url using authentication
+  async sendCommand(url_end: string, setValue: string, name: string, deviceuuid: string): Promise<boolean> {
+
+    //Build POST request body
+    const requestbody = {
+      'currentValue': setValue,
+      'scope': 'device',
+      'defaultValue': setValue,
+      'name': name,
+      'uuid': deviceuuid,
+    };
+
+    const url: string = 'https://' + this.homehost + '/v2/device/' + url_end;
+
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+          'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
+          'X-AUTH-TOKEN': this.authToken,
+        },
+        body: JSON.stringify(requestbody),
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
+    } catch(error) {
+      this.log.error('BlueAir API: error - %s', error);
+      return false;
+    }
+
+    const data = await response.json();
+    if(response.status !== 200) {
+      this.log.warn(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
+      return false;
+    }
+    return data;
+
+  }
+
+  // function to return body from BlueAir API url using authentication
+  async getJSONfromResponseBody(url) {
+    let response;
+    try{
+      response = await fetchTimeout(url, {
+        method: 'GET',
+        headers: {
+          'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
+          'X-AUTH-TOKEN': this.authToken,
+        },
+      }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
+    } catch(error) {
+      this.log.error('BlueAir API: error - %s', error);
+      return false;
+    }
+
+    let data;
+    try{
+      data = await response.json();
       if(response.status !== 200) {
         this.log.warn(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
         return false;
       }
-      return data;
-
+    } catch(error) {
+      // if cannot parse response
+      this.log.error('BlueAir API: error parsing json. %s', data);
+      return false;
     }
 
-    // function to return body from BlueAir API url using authentication 
-    async getJSONfromResponseBody(url) {
-      let response;
-      try{
-        response = await fetchTimeout(url, {
-          method: 'GET',
-          headers: {
-            'X-API-KEY-TOKEN': BLUEAIR_APIKEY,
-            'X-AUTH-TOKEN': this.authToken,
-          },
-        }, BLUEAIR_DEVICE_WAIT, 'Time out on BlueAir connection.');
-      } catch(error) {
-        this.log.error('BlueAir API: error - %s', error);
-        return false;
-      }
+    return data;
 
-      let data;
-      try{
-        data = await response.json();
-        if(response.status !== 200) {
-          this.log.warn(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
-          return false;
-        }
-      } catch(error) {
-        // if cannot parse response
-        this.log.error('BlueAir API: error parsing json. %s', data);
-        return false;
-      }
-
-      return data;
-
-    }
+  }
 
 }
-
