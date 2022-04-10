@@ -436,11 +436,9 @@ export class BlueAirDustProtectAccessory {
 
   async handleAirPurifierActiveSet(state) {
     // Set AirPurifier state
-
     if (state === 1) {
       // Set fan to auto when turned on
       await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
-
     } else if (state === 0) {
       // Set fan speed to 0 when turned off
       await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', true);
@@ -496,6 +494,11 @@ export class BlueAirDustProtectAccessory {
     if(state === false){ // Night Mode Off
       await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', false);
     } else if (state === true){ // Night Mode On
+      // If Air Purifier is turned off, first turn it on
+      if(this.accessory.context.attributes.standby) {
+        // Set fan to auto when turned on
+        await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
+      }
       await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', true);
     }
   }
