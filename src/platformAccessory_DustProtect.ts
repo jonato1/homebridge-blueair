@@ -345,11 +345,11 @@ export class BlueAirDustProtectAccessory {
 
       // Used 2.5 levels from https://blissair.com/what-is-pm-2-5.htm
       const levels = [
-        [99999, 201, this.platform.Characteristic.AirQuality.POOR],
-        [200, 151, this.platform.Characteristic.AirQuality.INFERIOR],
-        [150, 101, this.platform.Characteristic.AirQuality.FAIR],
-        [100, 51, this.platform.Characteristic.AirQuality.GOOD],
-        [50, 0, this.platform.Characteristic.AirQuality.EXCELLENT],
+        [99999, 201, 5], // 5 = this.platform.Characteristic.AirQuality.POOR
+        [200, 151, 4], // 4 = this.platform.Characteristic.AirQuality.INFERIOR
+        [150, 101, 3], //  3 = this.platform.Characteristic.AirQuality.FAIR
+        [100, 51, 2], // 2 = this.platform.Characteristic.AirQuality.GOOD
+        [50, 0, 1], // 1 = this.platform.Characteristic.AirQuality.EXCELLENT
       ];
 
       const ppm = this.accessory.context.sensorData.pm2_5;
@@ -397,8 +397,13 @@ export class BlueAirDustProtectAccessory {
   }
 
   async updateLED() {
-    // get LED state & brigtness
+    // Check to see if the air purifier is Off (Standby = True); If so, set LED to Off
+    if(this.accessory.context.attributes.standby) {
+        this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);
+        return true;
+    }
 
+    // get LED state & brigtness
     if(this.accessory.context.attributes.brightness !== undefined) {
       if(this.accessory.context.attributes.brightness > 0) {
         this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 1);  
@@ -411,8 +416,13 @@ export class BlueAirDustProtectAccessory {
   }
 
   async updateNightMode() {
-    // get NightMode Status
+    // Check to see if the air purifier is Off (Standby = True); If so, set LED to Off
+    if(this.accessory.context.attributes.standby) {
+      this.NightMode.updateCharacteristic(this.platform.Characteristic.On, 0);
+      return true;
+    }
 
+    // get NightMode Status
     if(this.accessory.context.attributes.nightmode !== undefined) {
       if(this.accessory.context.attributes.nightmode) {
         this.NightMode.updateCharacteristic(this.platform.Characteristic.On, 1);

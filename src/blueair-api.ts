@@ -733,6 +733,8 @@ export class BlueAirApi {
         return false;
       }
 
+      this.log.info('Set %s to %s', service, actionValue);
+
       this.log.debug('Response Headers: ', util.inspect(responseHeaders, { colors: true, sorted: true }));
       this.log.debug('Response Body: ', util.inspect(responseBody, { colors: true, sorted: true }));
 
