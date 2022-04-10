@@ -12,6 +12,7 @@ export class BlueAirDustProtectAccessory {
   private AirQualitySensor: Service;
   private FilterMaintenance: Service;
   private Lightbulb: Service;
+  private NightMode: Service;
 
   // store last query to BlueAir API
   private lastquery;
@@ -38,6 +39,8 @@ export class BlueAirDustProtectAccessory {
       this.accessory.addService(this.platform.Service.FilterMaintenance);
     this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) || 
       this.accessory.addService(this.platform.Service.Lightbulb);
+    this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
+      this.accessory.addService(this.platform.Service.Switch);
     
     // create handlers for characteristics
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.Active)
@@ -75,6 +78,10 @@ export class BlueAirDustProtectAccessory {
     this.Lightbulb.getCharacteristic(this.platform.Characteristic.Brightness)
       .onGet(this.handleBrightnessGet.bind(this))
       .onSet(this.handleBrightnessSet.bind(this));
+
+    this.NightMode.getCharacteristic(this.platform.Characteristic.On)
+      .onGet(this.handleNightModeGet.bind(this))
+      .onSet(this.handleNightModeSet.bind(this));
 
   }
 
@@ -142,7 +149,7 @@ export class BlueAirDustProtectAccessory {
 
       this.accessory.context.sensorData = sensorData;
       this.accessory.context.attributes = attributes;
-      this.platform.log.debug('Accessory Context', this.accessory.context);
+      this.platform.log.debug('Accessory', this.accessory);
 
       // Update Device Display Name
       this.accessory.displayName = this.accessory.context.configuration.di.name;
@@ -208,6 +215,11 @@ export class BlueAirDustProtectAccessory {
     await this.updateAccessoryCharacteristics();
     return this.Lightbulb.getCharacteristic(this.platform.Characteristic.Brightness).value;
   }
+
+  async handleNightModeGet() {
+    await this.updateAccessoryCharacteristics();
+    return this.NightMode.getCharacteristic(this.platform.Characteristic.On).value;
+  }
  
   // common function to update all characteristics
   async updateAccessoryCharacteristics() {
@@ -229,6 +241,7 @@ export class BlueAirDustProtectAccessory {
     await this.updateAirQualitySensor();
     await this.updateFilterMaintenance();
     await this.updateLED();
+    await this.updateNightMode();
 
     return true;
   }
@@ -330,6 +343,7 @@ export class BlueAirDustProtectAccessory {
         this.platform.log.debug('Sensor Data - PM 2.5: ', this.accessory.context.sensorData.pm2_5);
       }
 
+      // Used 2.5 levels from https://blissair.com/what-is-pm-2-5.htm
       const levels = [
         [99999, 201, this.platform.Characteristic.AirQuality.POOR],
         [200, 151, this.platform.Characteristic.AirQuality.INFERIOR],
@@ -355,6 +369,18 @@ export class BlueAirDustProtectAccessory {
 
   async updateFilterMaintenance() {
     // Update Filter maintenance
+    if(this.accessory.context.attributes.filterusage !== undefined) {
+      let currentValue;
+      if(this.accessory.context.attributes.filterusage < 95){
+        currentValue = this.platform.Characteristic.FilterChangeIndication.FILTER_OK;
+      } else {
+        currentValue = this.platform.Characteristic.FilterChangeIndication.CHANGE_FILTER;
+      }
+      this.FilterMaintenance.updateCharacteristic(this.platform.Characteristic.FilterChangeIndication, currentValue);
+    } else {
+      this.platform.log.error('%s: no filter_status found.', this.accessory.displayName);
+      return false;
+    }
 
     if(this.accessory.context.attributes.filterusage !== undefined) {
       if(this.accessory.context.attributes.filterusage > 0) {
@@ -381,6 +407,18 @@ export class BlueAirDustProtectAccessory {
       }
 
       this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
+    }
+  }
+
+  async updateNightMode() {
+    // get NightMode Status
+
+    if(this.accessory.context.attributes.nightmode !== undefined) {
+      if(this.accessory.context.attributes.nightmode) {
+        this.NightMode.updateCharacteristic(this.platform.Characteristic.On, 1);
+      } else {
+        this.NightMode.updateCharacteristic(this.platform.Characteristic.On, 0);
+      }
     }
   }
 
@@ -439,6 +477,17 @@ export class BlueAirDustProtectAccessory {
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
     await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'brightness', 'v', value);
+  }
+
+  async handleNightModeSet(state) {
+    this.platform.log.debug('handleNightModeSet state: ', state);
+
+    // Set NightMode
+    if(state === false){ // Night Mode Off
+      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', false);
+    } else if (state === true){ // Night Mode On
+      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', true);
+    }
   }
 
 }

@@ -208,13 +208,13 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
           continue;
         }
 
-        const deviceInfo = this.blueair.getAwsDeviceInfo(device.name, device.uuid);
+        const deviceInfo = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
         //this.log.info('Device Info:', deviceInfo);
 
         this.log.info('Adding new accessory:', device.name);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(device.name, uuid);
+        const accessory = new this.api.platformAccessory(deviceInfo[0].configuration.di.name, uuid);
 
         accessory.context.deviceApiName = device.name;
         accessory.context.uuid = device.uuid;
