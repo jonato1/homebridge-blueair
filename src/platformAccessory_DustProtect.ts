@@ -13,6 +13,7 @@ export class BlueAirDustProtectAccessory {
   private FilterMaintenance: Service;
   private Lightbulb: Service;
   private NightMode: Service;
+  private GermShield: Service;
 
   // store last query to BlueAir API
   private lastquery;
@@ -40,6 +41,8 @@ export class BlueAirDustProtectAccessory {
     this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) || 
       this.accessory.addService(this.platform.Service.Lightbulb);
     this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
+      this.accessory.addService(this.platform.Service.Switch);
+    this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
       this.accessory.addService(this.platform.Service.Switch);
     
     // create handlers for characteristics
@@ -82,6 +85,19 @@ export class BlueAirDustProtectAccessory {
     this.NightMode.getCharacteristic(this.platform.Characteristic.On)
       .onGet(this.handleNightModeGet.bind(this))
       .onSet(this.handleNightModeSet.bind(this));
+
+    this.NightMode.getCharacteristic(this.platform.Characteristic.Name)
+      .onGet(this.handleNightModeNameGet.bind(this));
+
+    // Only set up GermProtect on HealthProtect models
+    if(this.accessory.context.configuration.di.hw == 'high_1.5') {
+        this.GermShield.getCharacteristic(this.platform.Characteristic.On)
+          .onGet(this.handleGermShieldGet.bind(this))
+          .onSet(this.handleGermShieldSet.bind(this));
+
+        this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
+          .onGet(this.handleGermShieldNameGet.bind(this));
+    }
 
   }
 
@@ -220,6 +236,19 @@ export class BlueAirDustProtectAccessory {
     await this.updateAccessoryCharacteristics();
     return this.NightMode.getCharacteristic(this.platform.Characteristic.On).value;
   }
+
+  async handleNightModeNameGet() {
+    return this.accessory.context.configuration.di.name + ' - Night Mode';
+  }
+
+  async handleGermShieldGet() {
+    await this.updateAccessoryCharacteristics();
+    return this.GermShield.getCharacteristic(this.platform.Characteristic.On).value;
+  }
+
+  async handleGermShieldNameGet() {
+    return this.accessory.context.configuration.di.name + ' - Germ Shield';
+  }
  
   // common function to update all characteristics
   async updateAccessoryCharacteristics() {
@@ -242,6 +271,9 @@ export class BlueAirDustProtectAccessory {
     await this.updateFilterMaintenance();
     await this.updateLED();
     await this.updateNightMode();
+    if(this.accessory.context.configuration.di.hw == 'high_1.5') {
+        await this.updateGermShield();
+    }
 
     return true;
   }
@@ -432,6 +464,23 @@ export class BlueAirDustProtectAccessory {
     }
   }
 
+  async updateGermShield() {
+    // Check to see if the air purifier is Off (Standby = True); If so, set LED to Off
+    if(this.accessory.context.attributes.standby) {
+      this.GermShield.updateCharacteristic(this.platform.Characteristic.On, 0);
+      return true;
+    }
+
+    // get NightMode Status
+    if(this.accessory.context.attributes.germshield !== undefined) {
+      if(this.accessory.context.attributes.germshield) {
+        this.GermShield.updateCharacteristic(this.platform.Characteristic.On, 1);
+      } else {
+        this.GermShield.updateCharacteristic(this.platform.Characteristic.On, 0);
+      }
+    }
+  }
+
   // handlers SET
 
   async handleAirPurifierActiveSet(state) {
@@ -500,6 +549,22 @@ export class BlueAirDustProtectAccessory {
         await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
       }
       await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', true);
+    }
+  }
+
+  async handleGermShieldSet(state) {
+    this.platform.log.debug('handleGermShieldSet state: ', state);
+
+    // Set GermShield
+    if(state === false){ // Germ Shield Off
+      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', false);
+    } else if (state === true){ // Night Mode On
+      // If Air Purifier is turned off, first turn it on
+      if(this.accessory.context.attributes.standby) {
+        // Set fan to auto when turned on
+        await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
+      }
+      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', true);
     }
   }
 
