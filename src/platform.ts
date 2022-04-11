@@ -6,6 +6,7 @@ import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { BlueAirPlatformAccessory } from './platformAccessory';
 import { BlueAirClassicAccessory } from './platformAccessory_Classic';
 import { BlueAirAwareAccessory } from './platformAccessory_Aware';
+import { BlueAirDustProtectAccessory } from './platformAccessory_DustProtect';
 
 /**
  * HomebridgePlatform
@@ -91,8 +92,9 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     // retrieve AWS devices - not yet functional
     if(this.config.enableAWS) {
-      await this.blueair.loginAWS();
-      await this.blueair.getDevicesAWS();
+      await this.blueair.awsLogin();
+      await this.blueair.getAwsDevices();
+      await this.discoverAwsDevices();
     }
 
     // loop over the discovered devices and register each one if it has not already been registered
@@ -150,6 +152,84 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
       // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
     // end for
+    }
+
+  }
+
+  async discoverAwsDevices() {
+
+    // login to BlueAir
+    const login_flag: boolean = await this.blueair.awsLogin();
+    if(!login_flag){
+      this.log.error('Failed to login to AWS. Check password and restart Homebridge to try again.');
+      return false;
+    }
+
+    // retrieve devices
+    const devices_flag = await this.blueair.getAwsDevices();
+    if(!devices_flag){
+      this.log.error('Failed to get list of AWS devices. Check BlueAir App.');
+      return false;
+    }
+
+    // loop over the discovered devices and register each one if it has not already been registered
+    for (const device of this.blueair.awsDevices) {
+      // generate a unique id for the accessory this should be generated from
+      // something globally unique, but constant, for example, the device serial
+      // number or MAC address
+      const uuid = this.api.hap.uuid.generate(device.uuid);
+
+      // see if an accessory with the same uuid has already been registered and restored from
+      // the cached devices we stored in the `configureAccessory` method above
+      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+
+      if (existingAccessory) {
+        // the accessory already exists
+
+        // Exclude or include certain openers based on configuration parameters.
+        if(!this.optionEnabled(device)) {
+          this.log.info('Removing accessory:', device.uuid);
+          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [existingAccessory]);
+          continue;
+        }
+
+        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
+
+        this.api.updatePlatformAccessories([existingAccessory]);
+
+        await this.findAwsModelAndInitialize(device, existingAccessory);
+
+      } else {
+        // the accessory does not yet exist, so we need to create it
+
+        // Exclude or include certain openers based on configuration parameters.
+        if(!this.optionEnabled(device)) {
+          this.log.info('Skipping accessory:', device.uuid);
+          continue;
+        }
+
+        const deviceInfo = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
+        //this.log.info('Device Info:', deviceInfo);
+
+        this.log.info('Adding new accessory:', device.name);
+
+        // create a new accessory
+        const accessory = new this.api.platformAccessory(deviceInfo[0].configuration.di.name, uuid);
+
+        accessory.context.deviceApiName = device.name;
+        accessory.context.uuid = device.uuid;
+        accessory.context.mac = device.mac;
+        // accessory.context.userid = device.userid;
+
+        await this.findAwsModelAndInitialize(device, accessory);
+
+        // link the accessory to your platform
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      }
+
+      // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
+      // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      // end for
     }
 
   }
@@ -249,5 +329,23 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
     }
 
+  }
+
+  // AWS Accessory currently handles DustMagnet and Health Protect
+  private async findAwsModelAndInitialize(device, accessory){
+      // retreive model info
+      const info = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
+      this.log.info('Device Info from findAwsModelAndInitialize: ', info);
+      //this.log.info('%s of type "%s" initialized.', device.configuration.di.name, info.compatibility);
+
+      switch (info[0].configuration.di.hw) {
+        case 'b4basic_s_1.1': // B4 = DustMagnet
+        case 'high_1.5': // G4 = Health Protect
+          this.log.info('Creating new object: BlueAirDustProtectAccessory');
+          new BlueAirDustProtectAccessory(this, accessory);
+          break;
+        default:
+          this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
+      }
   }
 }
