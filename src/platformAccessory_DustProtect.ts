@@ -91,12 +91,12 @@ export class BlueAirDustProtectAccessory {
 
     // Only set up GermProtect on HealthProtect models
     if(this.accessory.context.configuration.di.hw == 'high_1.5') {
-        this.GermShield.getCharacteristic(this.platform.Characteristic.On)
-          .onGet(this.handleGermShieldGet.bind(this))
-          .onSet(this.handleGermShieldSet.bind(this));
+      this.GermShield.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(this.handleGermShieldGet.bind(this))
+        .onSet(this.handleGermShieldSet.bind(this));
 
-        this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
-          .onGet(this.handleGermShieldNameGet.bind(this));
+      this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
+        .onGet(this.handleGermShieldNameGet.bind(this));
     }
 
   }
@@ -154,13 +154,13 @@ export class BlueAirDustProtectAccessory {
 
       const attributes = {};
       for (let i=0; i < info[0].states.length; i++) {
-          this.platform.log.info('Accessory State #', i);
-          this.platform.log.info('Accessory State', info[0].states[i]);
-          if (info[0].states[i].hasOwnProperty('v')) {
-              attributes[info[0].states[i].n] = info[0].states[i].v;
-          } else if (info[0].states[i].hasOwnProperty('vb')) {
-              attributes[info[0].states[i].n] = info[0].states[i].vb;
-          }
+        this.platform.log.info('Accessory State #', i);
+        this.platform.log.info('Accessory State', info[0].states[i]);
+        if (info[0].states[i].hasOwnProperty('v')) {
+          attributes[info[0].states[i].n] = info[0].states[i].v;
+        } else if (info[0].states[i].hasOwnProperty('vb')) {
+          attributes[info[0].states[i].n] = info[0].states[i].vb;
+        }
       }
 
       this.accessory.context.sensorData = sensorData;
@@ -272,7 +272,7 @@ export class BlueAirDustProtectAccessory {
     await this.updateLED();
     await this.updateNightMode();
     if(this.accessory.context.configuration.di.hw == 'high_1.5') {
-        await this.updateGermShield();
+      await this.updateGermShield();
     }
 
     return true;
@@ -431,8 +431,8 @@ export class BlueAirDustProtectAccessory {
   async updateLED() {
     // Check to see if the air purifier is Off (Standby = True); If so, set LED to Off
     if(this.accessory.context.attributes.standby) {
-        this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);
-        return true;
+      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);
+      return true;
     }
 
     // get LED state & brigtness

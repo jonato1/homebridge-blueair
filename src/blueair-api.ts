@@ -622,30 +622,30 @@ export class BlueAirApi {
 
     // get devices AWS - does not work
     async getAwsDeviceInfo(deviceName: string, deviceUuid: string) {
-      let url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
+      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
 
       // details of form to be submitted
-      let body = JSON.stringify({
-        "deviceconfigquery": [
+      const body = JSON.stringify({
+        'deviceconfigquery': [
           {
-            "id": deviceUuid,
-            "r": {
-              "r": [
-                "sensors"
-              ]
-            }
-          }
+            'id': deviceUuid,
+            'r': {
+              'r': [
+                'sensors',
+              ],
+            },
+          },
         ],
-        "includestates": true,
-        "eventsubscription": {
-          "include": [
+        'includestates': true,
+        'eventsubscription': {
+          'include': [
             {
-              "filter": {
-                "o": "= " + deviceUuid
-              }
-            }
-          ]
-        }
+              'filter': {
+                'o': '= ' + deviceUuid,
+              },
+            },
+          ],
+        },
       });
 
       let response;
@@ -691,15 +691,15 @@ export class BlueAirApi {
       let body;
 
       if(actionVerb === 'vb') {
-          body = JSON.stringify({
-            "n": service,
-            "vb": actionValue,
-          });
+        body = JSON.stringify({
+          'n': service,
+          'vb': actionValue,
+        });
       } else {
-          body = JSON.stringify({
-            "n": service,
-            "v": actionValue,
-          });
+        body = JSON.stringify({
+          'n': service,
+          'v': actionValue,
+        });
       }
 
       this.log.debug('Request Body: ', util.inspect(body, { colors: true, sorted: true }));
