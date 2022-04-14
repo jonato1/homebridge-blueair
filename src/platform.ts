@@ -90,13 +90,6 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       return false;
     }
 
-    // retrieve AWS devices - not yet functional
-    if(this.config.enableAWS) {
-      await this.blueair.awsLogin();
-      await this.blueair.getAwsDevices();
-      await this.discoverAwsDevices();
-    }
-
     // loop over the discovered devices and register each one if it has not already been registered
     for (const device of this.blueair.devices) { 
 
@@ -148,6 +141,11 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
+
+    // retrieve AWS devices - testing/work by @jonato1
+    if(this.config.enableAWS) {
+      await this.discoverAwsDevices();
+    }
 
       // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
       // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -214,9 +212,9 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         this.log.info('Adding new accessory:', device.name);
 
         // create a new accessory
-        const accessory = new this.api.platformAccessory(deviceInfo[0].configuration.di.name, uuid);
+        const accessory = new this.api.platformAccessory(deviceInfo[0].configuration.di.name, uuid); // may edit for consistentcy in future version
 
-        accessory.context.deviceApiName = device.name;
+        accessory.context.deviceApiName = device.name; // may edit for consistency in future version
         accessory.context.uuid = device.uuid;
         accessory.context.mac = device.mac;
         // accessory.context.userid = device.userid;
@@ -340,6 +338,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     switch (info[0].configuration.di.hw) {
       case 'b4basic_s_1.1': // B4 = DustMagnet
+        this.log.info('This device is not yet supported');
       case 'high_1.5': // G4 = Health Protect
         this.log.info('Creating new object: BlueAirDustProtectAccessory');
         new BlueAirDustProtectAccessory(this, accessory);
