@@ -7,6 +7,7 @@ import { BlueAirPlatformAccessory } from './platformAccessory';
 import { BlueAirClassicAccessory } from './platformAccessory_Classic';
 import { BlueAirAwareAccessory } from './platformAccessory_Aware';
 import { BlueAirDustProtectAccessory } from './platformAccessory_DustProtect';
+import util from 'util';
 
 /**
  * HomebridgePlatform
@@ -338,13 +339,13 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     switch (info[0].configuration.di.hw) {
       case 'b4basic_s_1.1': // B4 = DustMagnet
-        this.log.info('This device is not yet supported');
       case 'high_1.5': // G4 = Health Protect
         this.log.info('Creating new object: BlueAirDustProtectAccessory');
         new BlueAirDustProtectAccessory(this, accessory);
         break;
       default:
         this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
+        this.log.error('This device is not yet supported. Device Type: ', info[0].configuration.di.hw);
     }
   }
 }

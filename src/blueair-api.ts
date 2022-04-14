@@ -564,14 +564,14 @@ export class BlueAirApi {
       this.accessToken = executeData.access_token;
 
       this.log.info('** AWS login begin **');
-      /*this.log.info('Headers:', headers);
-      this.log.info(util.inspect(data, { colors: true, sorted: true}));
+      this.log.info('Headers:', headers);
+      //this.log.info(util.inspect(data, { colors: true, sorted: true}));
       this.log.info('JWT Headers:', jwtHeaders);
-      this.log.info(util.inspect(jwtData, { colors: true, sorted: true}));
-      this.log.info('AWS jwtToken: %s', this.jwtToken);
+      //this.log.info(util.inspect(jwtData, { colors: true, sorted: true}));
+      //this.log.info('AWS jwtToken: %s', this.jwtToken);
       this.log.info('Execute Headers:', executeHeaders);
-      this.log.info(util.inspect(executeData, { colors: true, sorted: true}));
-      this.log.info('AWS accessToken: %s', this.accessToken);*/
+      //this.log.info(util.inspect(executeData, { colors: true, sorted: true}));
+      //this.log.info('AWS accessToken: %s', this.accessToken);
       //this.log.info('AWS authorization: %s', this.authorization);
       this.log.info('** AWS login end **');
 
@@ -672,12 +672,12 @@ export class BlueAirApi {
       const responseHeaders = await response.headers;
       const responseBody = await response.json();
 
-      /*this.log.info('Response Headers for Initial Call: ', util.inspect(responseHeaders, { colors: true, sorted: true}));
+      this.log.info('Response Headers for Initial Call: ', util.inspect(responseHeaders, { colors: true, sorted: true}));
       this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo, { colors: true, sorted: true}));
       this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo[0], { colors: true, sorted: true}));
       this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo[0].configuration.di.name, { colors: true, sorted: true}));
       this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo[0].sensordata, { colors: true, sorted: true}));
-      this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo[0].states, { colors: true, sorted: true}));*/
+      this.log.info('Response Body for Initial Call: ', util.inspect(responseBody.deviceInfo[0].states, { colors: true, sorted: true}));
 
       return responseBody.deviceInfo;
     }
