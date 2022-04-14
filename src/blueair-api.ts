@@ -622,10 +622,10 @@ export class BlueAirApi {
 
     // get devices AWS - does not work
     async getAwsDeviceInfo(deviceName: string, deviceUuid: string) {
-      let url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
+      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
 
       // details of form to be submitted
-      let body = JSON.stringify({
+      const body = JSON.stringify({
         "deviceconfigquery": [
           {
             "id": deviceUuid,

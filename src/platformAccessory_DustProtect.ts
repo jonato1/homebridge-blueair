@@ -143,29 +143,33 @@ export class BlueAirDustProtectAccessory {
 
       const sensorData = {};
       for (let i=0; i < info[0].sensordata.length; i++) {
-        this.platform.log.info('Accessory Sensor #', i);
-        this.platform.log.info('Accessory Sensor', info[0].sensordata[i]);
-        if (info[0].sensordata[i].hasOwnProperty('v')) {
-          sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].v;
-        } else if (info[0].states[i].hasOwnProperty('vb')) {
-          sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].vb;
-        }
+          const events = info[0].sensordata[i];
+
+          this.platform.log.info('Accessory Sensor #', i);
+          this.platform.log.info('Accessory Sensor', info[0].sensordata[i]);
+          if (Object.prototype.hasOwnProperty.call(events, 'v')) {
+            sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].v;
+          } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {
+            sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].vb;
+          }
       }
 
       const attributes = {};
       for (let i=0; i < info[0].states.length; i++) {
+          const events = info[0].states[i];
+
           this.platform.log.info('Accessory State #', i);
           this.platform.log.info('Accessory State', info[0].states[i]);
-          if (info[0].states[i].hasOwnProperty('v')) {
+          if (Object.prototype.hasOwnProperty.call(events, 'v')) {
               attributes[info[0].states[i].n] = info[0].states[i].v;
-          } else if (info[0].states[i].hasOwnProperty('vb')) {
+          } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {
               attributes[info[0].states[i].n] = info[0].states[i].vb;
           }
       }
 
       this.accessory.context.sensorData = sensorData;
       this.accessory.context.attributes = attributes;
-      this.platform.log.debug('Accessory', this.accessory);
+      this.platform.log.debug('Accessory object from updateDevice(): ', this.accessory);
 
       // Update Device Display Name
       this.accessory.displayName = this.accessory.context.configuration.di.name;
