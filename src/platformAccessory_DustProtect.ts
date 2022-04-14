@@ -143,22 +143,26 @@ export class BlueAirDustProtectAccessory {
 
       const sensorData = {};
       for (let i=0; i < info[0].sensordata.length; i++) {
+        const events = info[0].sensordata[i];
+
         this.platform.log.info('Accessory Sensor #', i);
         this.platform.log.info('Accessory Sensor', info[0].sensordata[i]);
-        if (info[0].sensordata[i].hasOwnProperty('v')) {
+        if (Object.prototype.hasOwnProperty.call(events, 'v')) {
           sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].v;
-        } else if (info[0].states[i].hasOwnProperty('vb')) {
+        } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {
           sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].vb;
         }
       }
 
       const attributes = {};
       for (let i=0; i < info[0].states.length; i++) {
+        const events = info[0].states[i];
+
         this.platform.log.info('Accessory State #', i);
         this.platform.log.info('Accessory State', info[0].states[i]);
-        if (info[0].states[i].hasOwnProperty('v')) {
+        if (Object.prototype.hasOwnProperty.call(events, 'v')) {
           attributes[info[0].states[i].n] = info[0].states[i].v;
-        } else if (info[0].states[i].hasOwnProperty('vb')) {
+        } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {
           attributes[info[0].states[i].n] = info[0].states[i].vb;
         }
       }
