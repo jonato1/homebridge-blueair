@@ -379,13 +379,13 @@ export class BlueAirDustProtectAccessory {
         this.platform.log.debug('Sensor Data - PM 2.5: ', this.accessory.context.sensorData.pm2_5);
       }
 
-      // Used 2.5 levels from https://blissair.com/what-is-pm-2-5.htm
+      // Used 2.5 levels from https://www.epa.gov/sites/default/files/2014-05/documents/zell-aqi.pdf
       const levels = [
-        [99999, 201, 5], // 5 = this.platform.Characteristic.AirQuality.POOR
-        [200, 151, 4], // 4 = this.platform.Characteristic.AirQuality.INFERIOR
-        [150, 101, 3], //  3 = this.platform.Characteristic.AirQuality.FAIR
-        [100, 51, 2], // 2 = this.platform.Characteristic.AirQuality.GOOD
-        [50, 0, 1], // 1 = this.platform.Characteristic.AirQuality.EXCELLENT
+        [99999, 150.5, 5], // 5 = this.platform.Characteristic.AirQuality.POOR
+        [150.4, 65.5, 4], // 4 = this.platform.Characteristic.AirQuality.INFERIOR
+        [65.4, 40.5, 3], //  3 = this.platform.Characteristic.AirQuality.FAIR
+        [40.4, 15.5, 2], // 2 = this.platform.Characteristic.AirQuality.GOOD
+        [15.4, 0, 1], // 1 = this.platform.Characteristic.AirQuality.EXCELLENT
       ];
 
       const ppm = this.accessory.context.sensorData.pm2_5;
