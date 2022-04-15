@@ -32,19 +32,19 @@ export class BlueAirDustProtectAccessory {
     this.platform.log.info('Accessor object', this.accessory);
 
     // initiate services
-    this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) || 
+    this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) ||
       this.accessory.addService(this.platform.Service.AirPurifier);
     this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
       this.accessory.addService(this.platform.Service.AirQualitySensor);
     this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) ||
       this.accessory.addService(this.platform.Service.FilterMaintenance);
-    this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) || 
+    this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
       this.accessory.addService(this.platform.Service.Lightbulb);
     this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
       this.accessory.addService(this.platform.Service.Switch);
     this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
       this.accessory.addService(this.platform.Service.Switch);
-    
+
     // create handlers for characteristics
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.Active)
       .onGet(this.handleAirPurifierActiveGet.bind(this))
@@ -89,16 +89,6 @@ export class BlueAirDustProtectAccessory {
     this.NightMode.getCharacteristic(this.platform.Characteristic.Name)
       .onGet(this.handleNightModeNameGet.bind(this));
 
-    // Only set up GermProtect on HealthProtect models
-    if(this.accessory.context.configuration.di.hw == 'high_1.5') {
-      this.GermShield.getCharacteristic(this.platform.Characteristic.On)
-        .onGet(this.handleGermShieldGet.bind(this))
-        .onSet(this.handleGermShieldSet.bind(this));
-
-      this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
-        .onGet(this.handleGermShieldNameGet.bind(this));
-    }
-
   }
 
   async setAccessoryInformation() {
@@ -111,6 +101,16 @@ export class BlueAirDustProtectAccessory {
       .setCharacteristic(this.platform.Characteristic.Model, 'DustProtect')
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.accessory.context.configuration.di.ds)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.accessory.context.configuration.di.mfv);
+
+    // Only set up GermProtect on HealthProtect models
+    if(this.accessory.context.configuration.di.hw === 'high_1.5') {
+      this.GermShield.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(this.handleGermShieldGet.bind(this))
+        .onSet(this.handleGermShieldSet.bind(this));
+
+      this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
+        .onGet(this.handleGermShieldNameGet.bind(this));
+    }
 
   }
  
@@ -389,14 +389,14 @@ export class BlueAirDustProtectAccessory {
       ];
 
       const ppm = this.accessory.context.sensorData.pm2_5;
-
-      let AirQuality;
+      // Default Air Quality to 0 = this.platform.Characteristic.AirQuality.UNKNOWN
+      let AirQuality = 0;
       for(const item of levels){
         if(ppm >= item[1] && ppm <= item[0]){
           AirQuality = item[2];
         }
       }
-      //this.platform.log.debug('%s: AirQuality = %s', this.accessory.displayName, AirQuality);
+      this.platform.log.debug('%s: AirQuality = %s', this.accessory.displayName, AirQuality);
 
       this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.AirQuality, AirQuality);
       this.AirPurifier.updateCharacteristic(this.platform.Characteristic.AirQuality, AirQuality);
