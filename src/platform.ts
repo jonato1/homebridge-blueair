@@ -7,7 +7,6 @@ import { BlueAirPlatformAccessory } from './platformAccessory';
 import { BlueAirClassicAccessory } from './platformAccessory_Classic';
 import { BlueAirAwareAccessory } from './platformAccessory_Aware';
 import { BlueAirDustProtectAccessory } from './platformAccessory_DustProtect';
-import util from 'util';
 
 /**
  * HomebridgePlatform
