@@ -48,6 +48,11 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       log.debug('Executed didFinishLaunching callback');
       // run the method to discover / register your devices as accessories
       this.discoverDevices();
+
+      // retrieve AWS devices - testing/work by @jonato1
+      if(this.config.enableAWS) {
+        this.discoverAwsDevices();
+      }
     });
   }
 
@@ -142,11 +147,6 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         // link the accessory to your platform
         this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
       }
-
-    // retrieve AWS devices - testing/work by @jonato1
-    if(this.config.enableAWS) {
-      await this.discoverAwsDevices();
-    }
 
       // it is possible to remove platform accessories at any time using `api.unregisterPlatformAccessories`, eg.:
       // this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
