@@ -53,4 +53,4 @@ For most people, I recommend using [Homebridge Configuration web UI](https://git
 ## Credits
 Many thanks to [@jonato1](https://github.com/jonato1) for his hard work developing the Amazon Web Services (AWS) API and associate accessories. 
 
-This plug was forked from [homebridge-blueair](https://github.com/mylesagray/homebridge-blueair) without which this would not be possible. Many thanks to @mylesagray! This plugin uses many cues from [homebridge-myq2](https://github.com/hjdhjd/homebridge-myq2/) for plugin structure and my other plugin [homebridge-kumo](https://github.com/fjs21/homebridge-kumo).
+This plug was forked from [homebridge-blueair](https://github.com/mylesagray/homebridge-blueair) without which this would not be possible. Many thanks to [@mylesagray](https://github.com/@mylesagray)! This plugin uses many cues from [homebridge-myq2](https://github.com/hjdhjd/homebridge-myq2/) for plugin structure and my other plugin [homebridge-kumo](https://github.com/fjs21/homebridge-kumo).
