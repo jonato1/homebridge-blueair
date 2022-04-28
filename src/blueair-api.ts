@@ -6,6 +6,7 @@ import {
   BLUEAIR_APIKEY,
   BLUEAIR_AWS_APIKEY,
   BLUEAIR_DEVICE_WAIT,
+  BLUEAIR_LOGIN_WAIT,
 } from './settings';
 
 export class BlueAirApi {
@@ -29,6 +30,7 @@ export class BlueAirApi {
     private jwtToken!: string;
     private accessToken!: string;
     private refreshToken!: string;
+    private tokenExpiration!: number;
 
     // Old AWS Variable(s) - TODO: Confirm if can be deleted
     private authorization!: string;
@@ -443,6 +445,9 @@ export class BlueAirApi {
       // Reset the API call time.
       const now = Date.now();
       this.lastAuthenticateCall = now;
+      this.tokenExpiration = now + BLUEAIR_LOGIN_WAIT;
+      const expirationDate = new Date(this.tokenExpiration);
+      this.log.debug('Tokens will expire at: %s', expirationDate.toString());
 
       const url = 'https://accounts.us1.gigya.com/accounts.login';
 
@@ -578,8 +583,30 @@ export class BlueAirApi {
       return true;
     }
 
+    async checkIfAwsTokensExpired() {
+      // Check if the tokenExpiration is older than the current date.
+      const now = Date.now();
+      const expirationDate = new Date(this.tokenExpiration);
+      this.log.debug('Checking token expiration date/time. Current token(s) expire at: %s', expirationDate.toString());
+
+      if(this.tokenExpiration < now) {
+        const refreshTokens = await this.refreshAwsTokens();
+        return refreshTokens;
+      } else {
+        return false;
+      }
+    }
+
+    async refreshAwsTokens() {
+      this.log.debug('Attempting to re-login and refresh Access and Refresh tokens for user account');
+      const retryLogin = await this.awsLogin();
+      this.log.debug('retryLogin result: %s', retryLogin);
+      return true;
+    }
+
     // get devices AWS - does not work
     async getAwsDevices() {
+      await this.checkIfAwsTokensExpired();
       const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
 
       let response;
@@ -622,6 +649,7 @@ export class BlueAirApi {
 
     // get devices AWS - does not work
     async getAwsDeviceInfo(deviceName: string, deviceUuid: string) {
+      await this.checkIfAwsTokensExpired();
       const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
 
       // details of form to be submitted
@@ -684,7 +712,7 @@ export class BlueAirApi {
 
     // function to send command to BlueAir API url using authentication
     async setAwsDeviceInfo(deviceUuid: string, service: string, actionVerb: string, actionValue): Promise<boolean> {
-
+      await this.checkIfAwsTokensExpired();
       const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceUuid + '/a/' + service;
 
       // details of form to be submitted
