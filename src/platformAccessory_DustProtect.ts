@@ -132,20 +132,9 @@ export class BlueAirDustProtectAccessory {
       this.platform.log.debug('Accessory Info: ', this.accessory);
       this.platform.log.debug('Accessory Name: ', this.accessory.context.deviceApiName);
       this.platform.log.debug('Accessory UUID: ', this.accessory.context.uuid);
-      let info = await this.platform.blueair.getAwsDeviceInfo(this.accessory.context.deviceApiName, this.accessory.context.uuid);
+      const info = await this.platform.blueair.getAwsDeviceInfo(this.accessory.context.deviceApiName, this.accessory.context.uuid);
       if(!info){
         this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
-
-        this.platform.log.debug('Attempting to re-login and refresh Access and Refresh tokens for: %s', this.accessory.displayName);
-        const retryLogin = await this.platform.blueair.awsLogin();
-        this.platform.log.debug('retryLogin result: %s', retryLogin);
-
-        info = await this.platform.blueair.getAwsDeviceInfo(this.accessory.context.deviceApiName, this.accessory.context.uuid);
-
-        if(!info) {
-          this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
-          return false;
-        }
       }
 
       this.accessory.context.configuration = info[0].configuration;
