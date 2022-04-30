@@ -26,7 +26,7 @@
     "fakegato-history": "^0.6.3",
     "fetch-timeout": "0.0.2",
     "request": "^2.88.0",
-    "util": "^0.11.1"
+    "util": "^0.12.4"
   },
   "devDependencies": {
     "@types/node": "^17.0.27",
