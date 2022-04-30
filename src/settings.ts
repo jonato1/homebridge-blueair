@@ -13,7 +13,7 @@ export const BLUEAIR_APIKEY = 'eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIs
 
 export const BLUEAIR_DEVICE_WAIT = 5000;
 
-export const BLUEAIR_LOGIN_WAIT = 82800000; // 23 hours
+export const BLUEAIR_LOGIN_WAIT = 86400000; // 24 hours
 
 export const BLUEAIR_AWS_APIKEY = '3_-xUbbrIY8QCbHDWQs1tLXE-CZBQ50SGElcOY5hF1euE11wCoIlNbjMGAFQ6UwhMY';
 
