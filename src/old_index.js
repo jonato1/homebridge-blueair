@@ -1,5 +1,15 @@
-/* jshint node: true */
-"use strict";
+import { API } from 'homebridge';
+
+import { PLATFORM_NAME } from './settings';
+import { KumoHomebridgePlatform } from './platform'; 
+
+/**
+ * This method registers the platform with Homebridge
+ */
+export = (api: API) => {
+  api.registerPlatform(PLATFORM_NAME, KumoHomebridgePlatform);
+}
+
 var request = require("request");
 var os = require('os');
 var fs = require('fs');
@@ -10,7 +20,7 @@ var moment = require('moment');
 var CustomCharacteristic = {};
 var hostname = os.hostname();
 
-module.exports = function(homebridge) {
+module.exports = function(this: homebridge) {
 	var FakeGatoHistoryService = require('fakegato-history')(homebridge);
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
@@ -18,6 +28,14 @@ module.exports = function(homebridge) {
 	homebridge.registerAccessory("homebridge-blueair", "BlueAir", BlueAir);
 	
 	function BlueAir(log, config) {
+		function boolValueWithDefault(value, defaultValue) {
+			if (value === undefined) {
+				return defaultValue;
+			} else {
+				return value;
+			}
+		}
+		
 		this.log = log;
 		this.username = config.username;
 		this.apikey = "eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoiYmx1ZWFpciIsImlhdCI6MTQ1MzEyNTYzMiwidmFsaWRpdHkiOi0xLCJqdGkiOiJkNmY3OGE0Yi1iMWNkLTRkZDgtOTA2Yi1kN2JkNzM0MTQ2NzQiLCJwZXJtaXNzaW9ucyI6WyJhbGwiXSwicXVvdGEiOi0xLCJyYXRlTGltaXQiOi0xfQ.CJsfWVzFKKDDA6rWdh-hjVVVE9S3d6Hu9BzXG9htWFw";
@@ -27,18 +45,21 @@ module.exports = function(homebridge) {
 		this.historicalmeasurements = [];
 		this.name = config.name || 'Air Purifier';
 		this.displayName = config.name;
+		this.purifierOnly = boolValueWithDefault(config.purifierOnly, false);
+		this.sensorOnly = boolValueWithDefault(config.sensorOnly, false);
 		this.airPurifierIndex = config.airPurifierIndex || 0;
 		this.nameAirQuality = config.nameAirQuality || 'Air Quality';
 		this.nameTemperature = config.nameTemperature || 'Temperature';
 		this.nameHumidity = config.nameHumidity || 'Humidity';
 		this.nameCO2 = config.nameCO2 || 'CO2';
-		this.showAirQuality = config.showAirQuality || false;
-		this.showTemperature = config.showTemperature || false;
-		this.showHumidity = config.showHumidity || false;
-		this.showCO2 = config.showCO2 || false;
-		this.getHistoricalStats = config.getHistoricalStats || false;
+		this.showAirQuality = boolValueWithDefault(config.showAirQuality, false);
+		this.showTemperature = boolValueWithDefault(config.showTemperature, false);
+		this.showHumidity = boolValueWithDefault(config.showHumidity, false);
+		this.showCO2 = boolValueWithDefault(config.showCO2, false);
+		this.getHistoricalStats = boolValueWithDefault(config.getHistoricalStats, false);
+		this.showLED = boolValueWithDefault(config.showLED, true);
 		
-		this.base_API_url = "https://api.foobot.io/v2/user/" + this.username + "/homehost/";
+		this.base_API_url = "https://api.blueair.io/v2/user/" + this.username + "/homehost/";
 		
 		this.services = [];
 		
@@ -51,37 +72,56 @@ module.exports = function(homebridge) {
 		if(!this.apikey)
 		throw new Error('Your must provide your BlueAir API Key.');
 		
-		// Register the service
-		this.service = new Service.AirPurifier(this.name);
-		
-		this.service
-		.getCharacteristic(Characteristic.Active)
-		.on('get', this.getActive.bind(this))
-		.on('set', this.setActive.bind(this))
-		.getDefaultValue();
-		
-		this.service
-		.getCharacteristic(Characteristic.CurrentAirPurifierState)
-		.on('get', this.getCurrentAirPurifierState.bind(this))
-		.getDefaultValue();
-		
-		this.service
-		.getCharacteristic(Characteristic.TargetAirPurifierState)
-		.on('get', this.getTargetAirPurifierState.bind(this))
-		.on('set', this.setTargetAirPurifierState.bind(this))
-		.getDefaultValue();
-		
-		this.service
-		.getCharacteristic(Characteristic.LockPhysicalControls)
-		.on('get', this.getLockPhysicalControls.bind(this))
-		.on('set', this.setLockPhysicalControls.bind(this))
-		.getDefaultValue();
-		
-		this.service
-		.getCharacteristic(Characteristic.RotationSpeed)
-		.on('get', this.getRotationSpeed.bind(this))
-		.on('set', this.setRotationSpeed.bind(this))
-		.getDefaultValue();
+		if(!this.sensorOnly) {
+			// Register the service
+			this.service = new Service.AirPurifier(this.name);
+			
+			this.service
+			.getCharacteristic(Characteristic.Active)
+			.on('get', this.getActive.bind(this))
+			.on('set', this.setActive.bind(this))
+			.getDefaultValue();
+			
+			this.service
+			.getCharacteristic(Characteristic.CurrentAirPurifierState)
+			.on('get', this.getCurrentAirPurifierState.bind(this))
+			.getDefaultValue();
+			
+			this.service
+			.getCharacteristic(Characteristic.TargetAirPurifierState)
+			.on('get', this.getTargetAirPurifierState.bind(this))
+			.on('set', this.setTargetAirPurifierState.bind(this))
+			.getDefaultValue();
+			
+			this.service
+			.getCharacteristic(Characteristic.LockPhysicalControls)
+			.on('get', this.getLockPhysicalControls.bind(this))
+			.on('set', this.setLockPhysicalControls.bind(this))
+			.getDefaultValue();
+			
+			this.service
+			.getCharacteristic(Characteristic.RotationSpeed)
+			.on('get', this.getRotationSpeed.bind(this))
+			.on('set', this.setRotationSpeed.bind(this))
+			.getDefaultValue();
+			
+			this.services.push(this.service);
+			
+			//Register the Filer Maitenance service
+			this.filterMaintenanceService = new Service.FilterMaintenance(this.name + " Filter");
+			
+			this.filterMaintenanceService
+			.getCharacteristic(Characteristic.FilterChangeIndication)
+			.on('get', this.getFilterChange.bind(this))
+			.getDefaultValue();
+			
+			this.filterMaintenanceService
+			.addCharacteristic(Characteristic.FilterLifeLevel)
+			.on('get', this.getFilterLife.bind(this))
+			.getDefaultValue();
+			
+			this.services.push(this.filterMaintenanceService);
+		}
 		
 		// Service information
 		this.serviceInfo = new Service.AccessoryInformation();
@@ -92,42 +132,28 @@ module.exports = function(homebridge) {
 		.setCharacteristic(Characteristic.SerialNumber, hostname + "-" + this.appliance.info.uuid)
 		.setCharacteristic(Characteristic.FirmwareRevision, this.appliance.info.firmware);
 		
-		this.services.push(this.service);
 		this.services.push(this.serviceInfo);
 		
-		//Register the Lightbulb service (LED / Display)
-		this.lightBulbService = new Service.Lightbulb(this.name + " LED");
+		if (!this.sensorOnly && this.showLED) {
+			//Register the Lightbulb service (LED / Display)
+			this.lightBulbService = new Service.Lightbulb(this.name + " LED");
+			
+			this.lightBulbService
+			.getCharacteristic(Characteristic.On)
+			.on('get', this.getLED.bind(this))
+			.on('set', this.setLED.bind(this))
+			.getDefaultValue();
+			
+			this.lightBulbService
+			.getCharacteristic(Characteristic.Brightness)
+			.on('get', this.getLEDBrightness.bind(this))
+			.on('set', this.setLEDBrightness.bind(this))
+			.getDefaultValue();
+			
+			this.services.push(this.lightBulbService);
+		}
 		
-		this.lightBulbService
-		.getCharacteristic(Characteristic.On)
-		.on('get', this.getLED.bind(this))
-		.on('set', this.setLED.bind(this))
-		.getDefaultValue();
-		
-		this.lightBulbService
-		.getCharacteristic(Characteristic.Brightness)
-		.on('get', this.getLEDBrightness.bind(this))
-		.on('set', this.setLEDBrightness.bind(this))
-		.getDefaultValue();
-		
-		this.services.push(this.lightBulbService);
-		
-		//Register the Filer Maitenance service
-		this.filterMaintenanceService = new Service.FilterMaintenance(this.name + " Filter");
-		
-		this.filterMaintenanceService
-		.getCharacteristic(Characteristic.FilterChangeIndication)
-		.on('get', this.getFilterChange.bind(this))
-		.getDefaultValue();
-		
-		this.filterMaintenanceService
-		.addCharacteristic(Characteristic.FilterLifeLevel)
-		.on('get', this.getFilterLife.bind(this))
-		.getDefaultValue();
-		
-		this.services.push(this.filterMaintenanceService);
-		
-		if(this.showAirQuality){
+		if(!this.purifierOnly && this.showAirQuality){
 			this.airQualitySensorService = new Service.AirQualitySensor(this.nameAirQuality);
 			
 			this.airQualitySensorService
@@ -145,18 +171,11 @@ module.exports = function(homebridge) {
 			.on('get', this.getVOCDensity.bind(this))
 			.getDefaultValue();
 			
-			this.airQualitySensorService
-			.getCharacteristic(Characteristic.CarbonDioxideLevel)
-			.on('get', this.getCO2.bind(this))
-			.getDefaultValue();
-			
-			this.airQualitySensorService
-			.setCharacteristic(Characteristic.AirParticulateSize, '2.5um');
 			
 			this.services.push(this.airQualitySensorService);
 		}
 		
-		if(this.showTemperature){
+		if(!this.purifierOnly && this.showTemperature){
 			this.temperatureSensorService = new Service.TemperatureSensor(this.nameTemperature);
 			
 			this.temperatureSensorService
@@ -167,7 +186,7 @@ module.exports = function(homebridge) {
 			this.services.push(this.temperatureSensorService);
 		}
 		
-		if(this.showHumidity){
+		if(!this.purifierOnly && this.showHumidity){
 			this.humiditySensorService = new Service.HumiditySensor(this.nameHumidity);
 			
 			this.humiditySensorService
@@ -178,7 +197,7 @@ module.exports = function(homebridge) {
 			this.services.push(this.humiditySensorService);
 		}
 		
-		if(this.showCO2){
+		if(!this.purifierOnly && this.showCO2){
 			this.CO2SensorService = new Service.CarbonDioxideSensor(this.nameCO2);
 			
 			this.CO2SensorService
@@ -199,7 +218,7 @@ module.exports = function(homebridge) {
 			this.services.push(this.CO2SensorService);
 		}
 		
-		if(this.getHistoricalStats){
+		if(!this.purifierOnly && this.getHistoricalStats){
 			//Start fakegato-history custom charactaristic (Air Quality PPM charactaristic)
 			CustomCharacteristic.AirQualCO2 = function() {
 				Characteristic.call(this, 'Air Quality PM25', 'E863F10B-079E-48FF-8F27-9C2605A29F52');
@@ -236,10 +255,29 @@ module.exports = function(homebridge) {
 	
 	BlueAir.prototype = {
 		
+		tryParseJSON: function(jsonString){
+			try {
+				var o = JSON.parse(jsonString);
+				
+				// Handle non-exception-throwing cases:
+				// Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+				// but... JSON.parse(null) returns null, and typeof null === "object", 
+				// so we must check for that, too. Thankfully, null is falsey, so this suffices:
+				if (o && typeof o === "object") {
+					return o;
+				}
+			}
+			catch (e) { }
+			
+			return false;
+		},
+		
 		getAllState: function(){
 			if (this.deviceuuid !== 'undefined'){
+				if(!this.sensorOnly)
 				this.getBlueAirSettings(function(){});
 				this.getBlueAirInfo(function(){});
+				if(!this.purifierOnly)
 				this.getLatestValues(function(){});
 			} else {
 				this.log.debug("No air purifiers found");
@@ -272,10 +310,9 @@ module.exports = function(homebridge) {
 							callback(error);
 						}
 						else {
-							var json = JSON.parse(body);
-							this.log.debug("Got home region:", json);
+							this.log.debug("Got home region:", body);
 							this.gothomehost = 1;
-							this.homehost = json;
+							this.homehost = body.replace(/['"]+/g, '');
 							callback(null);
 						}
 					}.bind(this));
@@ -336,17 +373,13 @@ module.exports = function(homebridge) {
 								callback(error);
 							}
 							else {
-								var json = JSON.parse(body);
+								var json = this.tryParseJSON(body);
 								var numberofdevices = '';
-								if (this.airPurifierIndex < json.length) {
-									this.deviceuuid = json[this.airPurifierIndex].uuid;
-									this.devicename = json[this.airPurifierIndex].name;
-									this.havedeviceID = 1;
-									this.log.debug("Got device ID"); 
-									callback(null);
-								} else {
-									this.log.debug("airPurifierIndex specified is higher than number of air purifiers available");
-								}
+								this.deviceuuid = json[this.airPurifierIndex].uuid;
+								this.devicename = json[this.airPurifierIndex].name;
+								this.havedeviceID = 1;
+								this.log.debug("Got device ID"); 
+								callback(null);
 							}
 						}.bind(this));
 					}.bind(this));
@@ -381,7 +414,7 @@ module.exports = function(homebridge) {
 										callback(error);
 									}
 									else {
-										var json = JSON.parse(body);
+										var json = this.tryParseJSON(body);
 										this.appliance = json.reduce(function(obj, prop) {
 											obj[prop.name] = prop.currentValue;
 											return obj;
@@ -428,7 +461,7 @@ module.exports = function(homebridge) {
 										callback(error);
 									}
 									else {
-										var json = JSON.parse(body);
+										var json = this.tryParseJSON(body);
 										this.appliance.info = json;
 										this.log.debug("Got device info");
 										var filterusageindays = Math.round(((this.appliance.info.initUsagePeriod/60)/60)/24);
@@ -476,7 +509,7 @@ module.exports = function(homebridge) {
 									}
 									else {
 										this.measurements = {};
-										var json = JSON.parse(body);
+										var json = this.tryParseJSON(body);
 										this.lastSensorRefresh = new Date();
 										
 										if (json.datapoints.length >= 1)
@@ -597,7 +630,7 @@ module.exports = function(homebridge) {
 									}
 									else {
 										
-										var json = JSON.parse(body);
+										var json = this.tryParseJSON(body);
 										this.log.debug("Downloaded " + json.datapoints.length + " datapoints for " + json.sensors.length + " senors");
 										
 										if (json.datapoints.length >= 1)
