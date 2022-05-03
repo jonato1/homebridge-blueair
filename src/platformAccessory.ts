@@ -201,7 +201,7 @@ export class BlueAirPlatformAccessory {
 
     try{
       const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-      this.platform.log.info('%s: measurements. %s', this.accessory.displayName, measurements);
+      this.platform.log.debug('%s: measurements. %s', this.accessory.displayName, measurements);
       if(!measurements){
         this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
         return false;
@@ -463,12 +463,12 @@ export class BlueAirPlatformAccessory {
       }
 
       // Characteristic triggers warning if value over 1000      
-      if(this.accessory.context.measurements.pm < 1000){ 
-        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-        this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-      } else {
+      if(this.accessory.context.measurements.pm > 1000){ 
         this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, 1000);
         this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, 1000);
+      } else {
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
+        this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
       }
 
       // Characteristic triggers warning if value over 1000
