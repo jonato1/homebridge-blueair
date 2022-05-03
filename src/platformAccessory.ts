@@ -201,7 +201,7 @@ export class BlueAirPlatformAccessory {
 
     try{
       const measurements = await this.platform.blueair.getDeviceDatapoint(this.accessory.context.uuid);
-      this.log.info('%s: measurements. %s', this.accessory.displayName, measurements);
+      this.platform.log.info('%s: measurements. %s', this.accessory.displayName, measurements);
       if(!measurements){
         this.platform.log.error('%s: getDeviceDatapoint failed.', this.accessory.displayName);
         return false;
