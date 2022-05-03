@@ -659,8 +659,8 @@ export class BlueAirPlatformAccessory {
 
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
-
-    const brightness = value;
+    
+    const brightness = Math.floor(value / 25) * 25;
 
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
     await this.platform.blueair.sendCommand(url_end, brightness.toString(), 'brightness', this.accessory.context.uuid);    
