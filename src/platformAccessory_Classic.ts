@@ -325,7 +325,7 @@ export class BlueAirClassicAccessory {
         this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);  
       }
 
-      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness * 25);
+      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
     }
   }
 
@@ -396,9 +396,9 @@ export class BlueAirClassicAccessory {
     let brightness;
     if(state === true) {
       if(this.accessory.context.attributes.brightness !== '0'){
-        brightness = Math.floor(this.accessory.context.attributes.brightness / 100);
+        brightness = this.accessory.context.attributes.brightness;
       } else {
-        brightness = 4;
+        brightness = 100;
       }
     } else if (state === false) {
       brightness = 0;
@@ -411,10 +411,13 @@ export class BlueAirClassicAccessory {
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
 
-    const brightness = Math.floor(value / 25);
+    const brightness = Math.floor(value / 25) * 25;
 
+    
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
     await this.platform.blueair.sendCommand(url_end, brightness.toString(), 'brightness', this.accessory.context.uuid);    
+    this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
+    this.platform.log.info('%s: LED brightness: %s, set to %s', this.accessory.displayName, value, brightness);
   }
 
 }
