@@ -325,8 +325,7 @@ export class BlueAirClassicAccessory {
         this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);  
       }
 
-      this.platform.log.info('%s: LED brightness is %s', this.accessory.displayName, this.accessory.context.attributes.brightness);
-      // this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
+      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
     }
   }
 
