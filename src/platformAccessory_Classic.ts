@@ -397,9 +397,9 @@ export class BlueAirClassicAccessory {
     let brightness;
     if(state === true) {
       if(this.accessory.context.attributes.brightness !== '0'){
-        brightness = Math.floor(this.accessory.context.attributes.brightness / 100);
+        brightness = this.accessory.context.attributes.brightness;
       } else {
-        brightness = 4;
+        brightness = 100;
       }
     } else if (state === false) {
       brightness = 0;
@@ -411,9 +411,10 @@ export class BlueAirClassicAccessory {
 
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
+    const brightness = value;
 
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
-    await this.platform.blueair.sendCommand(url_end, value.toString(), 'brightness', this.accessory.context.uuid);    
+    await this.platform.blueair.sendCommand(url_end, brightness.toString(), 'brightness', this.accessory.context.uuid);    
   }
 
 }
