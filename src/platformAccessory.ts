@@ -463,7 +463,7 @@ export class BlueAirPlatformAccessory {
       }
 
       // Characteristic triggers warning if value over 1000      
-      if(this.accessory.context.measurements.PM2_5Density < 1000){ 
+      if(this.accessory.context.measurements.pm < 1000){ 
         this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
         this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
       } else {
