@@ -288,38 +288,25 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     switch (info.compatibility) {
       case 'classic_280i': 
-        new BlueAirPlatformAccessory(this, accessory);    
-        break;
       case 'classic_290i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_380i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_480i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_580i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_680i': 
         new BlueAirPlatformAccessory(this, accessory);
         break;
+
       case 'aware': 
         new BlueAirAwareAccessory(this, accessory);
         break;
+
       case 'classic_205':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_405':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_505':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_605':
         new BlueAirClassicAccessory(this, accessory);
         break;
+        
       case 'sense+':
         new BlueAirClassicAccessory(this, accessory);
         break;
