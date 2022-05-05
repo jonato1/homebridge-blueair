@@ -18,7 +18,7 @@
             "required": true
         },
         "enableAWS": {
-            "title": "Enable AWS API connection (only for debugging currently)",
+            "title": "Enable AWS API connection (required for devices like DustMagnet and HealthProtect)",
             "type": "boolean",
             "required": false
         },

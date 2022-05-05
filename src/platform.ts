@@ -320,7 +320,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   private async findAwsModelAndInitialize(device, accessory){
     // retreive model info
     const info = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
-    this.log.info('Device Info from findAwsModelAndInitialize: ', info);
+    this.log.debug('Device Info from findAwsModelAndInitialize: ', info);
     //this.log.info('%s of type "%s" initialized.', device.configuration.di.name, info.compatibility);
 
     switch (info[0].configuration.di.hw) {

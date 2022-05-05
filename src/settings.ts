@@ -26,6 +26,6 @@ export const BLUEAIR_AWS_APIKEYS = {
     'restApiId': 'hkgmr8v960',
     'awsRegion': 'eu-west-1',
     'apiKey': '3_qRseYzrUJl1VyxvSJANalu_kNgQ83swB1B9uzgms58--5w1ClVNmrFdsDnWVQQCl',
-  }
+  },
 };
 
