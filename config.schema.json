@@ -22,6 +22,16 @@
             "type": "boolean",
             "required": false
         },
+        "region": {
+          "title": "Region",
+          "type": "string",
+          "default": "us",
+          "oneOf": [
+            { "title": "US", "enum": ["us"] },
+            { "title": "EU", "enum": ["eu"] }
+          ],
+          "required": true
+        },
         "options": {
             "title": "Feature Options",
             "type": "array",

@@ -4,7 +4,7 @@ import util from 'util';
 
 import {
   BLUEAIR_APIKEY,
-  BLUEAIR_AWS_APIKEY,
+  BLUEAIR_AWS_APIKEYS,
   BLUEAIR_DEVICE_WAIT,
   BLUEAIR_LOGIN_WAIT,
 } from './settings';
@@ -16,11 +16,21 @@ export class BlueAirApi {
 
     private username: string;
     private password: string;
+    private region: string;
 
     private lastAuthenticateCall!: number;
     private base_API_url: string;
     private homehost!: string;
     private authToken!: string;
+
+    // AWS URL Regions
+    private gigyaRegion!: string;
+    private awsRegion!: string;
+
+    // AWS Keys
+    private awsKeys: object;
+    private awsApiKey!: string;
+    private awsRestApiId!: string;
 
     // AWS Session Variables
     private sessionToken!: string;
@@ -38,7 +48,7 @@ export class BlueAirApi {
     private log: Logger;
 
     // initiate instance with login information
-    constructor(log: Logger, username: string, password: string) {
+    constructor(log: Logger, username: string, password: string, region: string) {
       this.log = log;
 
       if(username === undefined){
@@ -50,7 +60,12 @@ export class BlueAirApi {
       }
       this.username = username;
       this.password = password;
+      this.region = region;
+      this.awsKeys = BLUEAIR_AWS_APIKEYS;
       this.devices = [];
+
+      // Set AWS Regions to enable global interoperability
+      this.setAwsRegions();
 
       this.base_API_url = 'https://api.blueair.io/v2/user/' + this.username + '/homehost/';
       this.log.info('base_API_url: %s', this.base_API_url);
@@ -439,6 +454,20 @@ export class BlueAirApi {
     }
 
     /* AWS Specific Methods */
+    async setAwsRegions() {
+      this.gigyaRegion = this.awsKeys[this.region].gigyaRegion;
+      this.awsRegion = this.awsKeys[this.region].awsRegion;
+      this.awsRestApiId = this.awsKeys[this.region].restApiId;
+      this.awsApiKey = this.awsKeys[this.region].apiKey;
+
+      this.log.info('Current Gigya Region: %s', this.gigyaRegion);
+      this.log.info('Current AWS Region: %s', this.awsRegion);
+      this.log.debug('Current AWS REST API ID: %s', this.awsRestApiId);
+      this.log.debug('Current AWS API Key: %s', this.awsApiKey);
+
+      return true;
+    }
+
     // login AWS
     async awsLogin() {
 
@@ -449,11 +478,11 @@ export class BlueAirApi {
       const expirationDate = new Date(this.tokenExpiration);
       this.log.debug('Tokens will expire at: %s', expirationDate.toString());
 
-      const url = 'https://accounts.us1.gigya.com/accounts.login';
+      const url = 'https://accounts.' + this.gigyaRegion + '.gigya.com/accounts.login';
 
       // details of form to be submitted
       const details = {
-        'apikey': BLUEAIR_AWS_APIKEY,
+        'apikey': this.awsApiKey,
         'loginID': this.username,
         'password': this.password,
         'targetEnv': 'mobile',
@@ -473,7 +502,7 @@ export class BlueAirApi {
         response = await fetchTimeout(url, {
           method: 'POST',
           headers: {
-            'Host': 'accounts.us1.gigya.com',
+            'Host': 'accounts.' + this.gigyaRegion + '.gigya.com',
             'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
             'Connection': 'keep-alive',
             'Accept': '*/*',
@@ -496,7 +525,7 @@ export class BlueAirApi {
 
       // GET JWT Token
 
-      const jwtUrl = 'https://accounts.us1.gigya.com/accounts.getJWT';
+      const jwtUrl = 'https://accounts.' + this.gigyaRegion + '.gigya.com/accounts.getJWT';
 
       // details of form to be submitted
       const jwtDetails = {
@@ -519,7 +548,7 @@ export class BlueAirApi {
         jwtResponse = await fetchTimeout(jwtUrl, {
           method: 'POST',
           headers: {
-            'Host': 'accounts.us1.gigya.com',
+            'Host': 'accounts.' + this.gigyaRegion + '.gigya.com',
             'User-Agent': 'Blueair/58 CFNetwork/1327.0.4 Darwin/21.2.0',
             'Connection': 'keep-alive',
             'Accept': '*/*',
@@ -542,14 +571,14 @@ export class BlueAirApi {
 
       // Use JWT Token to get Access Token for Execute API endpoints
 
-      const executeUrl = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/login';
+      const executeUrl = 'https://' + this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com/prod/c/login';
 
       let executeResponse;
       try{
         executeResponse = await fetchTimeout(executeUrl, {
           method: 'POST',
           headers: {
-            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Host': this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com',
             'Connection': 'keep-alive',
             'idtoken': this.jwtToken,
             'Accept': '*/*',
@@ -607,14 +636,14 @@ export class BlueAirApi {
     // get devices AWS - does not work
     async getAwsDevices() {
       await this.checkIfAwsTokensExpired();
-      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/registered-devices';
+      const url = 'https://' + this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com/prod/c/registered-devices';
 
       let response;
       try{
         response = await fetchTimeout(url, {
           method: 'GET',
           headers: {
-            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Host': this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com',
             'Connection': 'keep-alive',
             'idtoken': this.accessToken,
             'Accept': '*/*',
@@ -650,7 +679,7 @@ export class BlueAirApi {
     // get devices AWS - does not work
     async getAwsDeviceInfo(deviceName: string, deviceUuid: string) {
       await this.checkIfAwsTokensExpired();
-      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceName + '/r/initial';
+      const url = 'https://' + this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com/prod/c/' + deviceName + '/r/initial';
 
       // details of form to be submitted
       const body = JSON.stringify({
@@ -681,7 +710,7 @@ export class BlueAirApi {
         response = await fetchTimeout(url, {
           method: 'POST',
           headers: {
-            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Host': this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com',
             'Connection': 'keep-alive',
             'idtoken': this.accessToken,
             'Accept': '*/*',
@@ -713,7 +742,7 @@ export class BlueAirApi {
     // function to send command to BlueAir API url using authentication
     async setAwsDeviceInfo(deviceUuid: string, service: string, actionVerb: string, actionValue): Promise<boolean> {
       await this.checkIfAwsTokensExpired();
-      const url = 'https://on1keymlmh.execute-api.us-east-2.amazonaws.com/prod/c/' + deviceUuid + '/a/' + service;
+      const url = 'https://' + this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com/prod/c/' + deviceUuid + '/a/' + service;
 
       // details of form to be submitted
       let body;
@@ -737,7 +766,7 @@ export class BlueAirApi {
         response = await fetchTimeout(url, {
           method: 'POST',
           headers: {
-            'Host': 'on1keymlmh.execute-api.us-east-2.amazonaws.com',
+            'Host': this.awsRestApiId + '.execute-api.' + this.awsRegion + '.amazonaws.com',
             'Connection': 'keep-alive',
             'idtoken': this.accessToken,
             'Accept': '*/*',

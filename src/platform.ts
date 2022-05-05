@@ -30,12 +30,12 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     // initializing login information
     this.log = log;
 
-    if(config.username == undefined || config.password == undefined){
+    if(config.username === undefined || config.password === undefined){
       this.log.error('Missing BlueAir API credentials.');
       return;
     }
 
-    this.blueair = new BlueAirApi(this.log, config.username, config.password);
+    this.blueair = new BlueAirApi(this.log, config.username, config.password, config.region);
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
