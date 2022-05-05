@@ -30,12 +30,12 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     // initializing login information
     this.log = log;
 
-    if(config.username == undefined || config.password == undefined){
+    if(config.username === undefined || config.password === undefined){
       this.log.error('Missing BlueAir API credentials.');
       return;
     }
 
-    this.blueair = new BlueAirApi(this.log, config.username, config.password);
+    this.blueair = new BlueAirApi(this.log, config.username, config.password, config.region);
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
@@ -288,38 +288,25 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
     switch (info.compatibility) {
       case 'classic_280i': 
-        new BlueAirPlatformAccessory(this, accessory);    
-        break;
       case 'classic_290i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_380i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_480i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_580i':
-        new BlueAirPlatformAccessory(this, accessory);
-        break;
       case 'classic_680i': 
         new BlueAirPlatformAccessory(this, accessory);
         break;
+
       case 'aware': 
         new BlueAirAwareAccessory(this, accessory);
         break;
+
       case 'classic_205':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_405':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_505':
-        new BlueAirClassicAccessory(this, accessory);
-        break;
       case 'classic_605':
         new BlueAirClassicAccessory(this, accessory);
         break;
+        
       case 'sense+':
         new BlueAirClassicAccessory(this, accessory);
         break;
@@ -333,7 +320,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   private async findAwsModelAndInitialize(device, accessory){
     // retreive model info
     const info = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
-    this.log.info('Device Info from findAwsModelAndInitialize: ', info);
+    this.log.debug('Device Info from findAwsModelAndInitialize: ', info);
     //this.log.info('%s of type "%s" initialized.', device.configuration.di.name, info.compatibility);
 
     switch (info[0].configuration.di.hw) {

@@ -18,9 +18,19 @@
             "required": true
         },
         "enableAWS": {
-            "title": "Enable AWS API connection (only for debugging currently)",
+            "title": "Enable AWS API connection (required for devices like DustMagnet and HealthProtect)",
             "type": "boolean",
             "required": false
+        },
+        "region": {
+          "title": "Region",
+          "type": "string",
+          "default": "us",
+          "oneOf": [
+            { "title": "US", "enum": ["us"] },
+            { "title": "EU", "enum": ["eu"] }
+          ],
+          "required": true
         },
         "options": {
             "title": "Feature Options",

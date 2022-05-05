@@ -29,7 +29,7 @@ export class BlueAirDustProtectAccessory {
     // set model name, firware, etc.
     this.setAccessoryInformation();
 
-    this.platform.log.info('Accessor object', this.accessory);
+    this.platform.log.debug('Accessor object', this.accessory);
 
     // initiate services
     this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) ||
@@ -144,8 +144,7 @@ export class BlueAirDustProtectAccessory {
       for (let i=0; i < info[0].sensordata.length; i++) {
         const events = info[0].sensordata[i];
 
-        this.platform.log.info('Accessory Sensor #', i);
-        this.platform.log.info('Accessory Sensor', info[0].sensordata[i]);
+        this.platform.log.debug('Accessory State (#%s): %s', i, info[0].sensordata[i]);
         if (Object.prototype.hasOwnProperty.call(events, 'v')) {
           sensorData[info[0].sensordata[i].n] = info[0].sensordata[i].v;
         } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {
@@ -157,8 +156,7 @@ export class BlueAirDustProtectAccessory {
       for (let i=0; i < info[0].states.length; i++) {
         const events = info[0].states[i];
 
-        this.platform.log.info('Accessory State #', i);
-        this.platform.log.info('Accessory State', info[0].states[i]);
+        this.platform.log.debug('Accessory State (#%s): %s', i, info[0].states[i]);
         if (Object.prototype.hasOwnProperty.call(events, 'v')) {
           attributes[info[0].states[i].n] = info[0].states[i].v;
         } else if (Object.prototype.hasOwnProperty.call(events, 'vb')) {

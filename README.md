@@ -32,10 +32,11 @@ npm install homebridge-blueair
 
 - **Automatic detection and configuration of multiple BlueAir devices.** By default - all of your supported devices are made available in HomeKit.
 
+- ***NEW* support for AWS-based models such as the HealthProtect and DustMagnet models.** Please check the 'enable AWS API connection' to try out this new feature developed by [@jonato1](https://github.com/jonato1).   
+
 ### To do
 
-- Add support for AWS-based API (needed for HealthProtect and DustMagnet devices). Needs help from others. See Issue #1.
-- Add support for additional models. Match capabilities to Homekit device. See Issue #6.
+- Continue to add support for additional models. Match capabilities to Homekit device. See Issue #6.
 
 ## Plugin Configuration
 If you choose to configure this plugin directly instead of using the [Homebridge Configuration web UI](https://github.com/oznu/homebridge-config-ui-x), you'll need to add the platform to your `config.json` in your home directory inside `.homebridge`.
