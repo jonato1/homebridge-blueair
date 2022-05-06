@@ -1,6 +1,7 @@
 import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, Service, Characteristic } from 'homebridge';
 
 import { BlueAirApi } from './blueair-api';
+import { BlueAirAwsApi } from './blueair-aws-api';
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 
 import { BlueAirPlatformAccessory } from './platformAccessory';
@@ -21,6 +22,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   public readonly accessories: PlatformAccessory[] = [];
 
   readonly blueair!: BlueAirApi;
+  readonly blueairAws!: BlueAirAwsApi;
 
   constructor(
     public readonly log: Logger,
@@ -30,12 +32,15 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
     // initializing login information
     this.log = log;
 
-    if(config.username == undefined || config.password == undefined){
+    if(config.username === undefined || config.password === undefined){
       this.log.error('Missing BlueAir API credentials.');
       return;
     }
 
     this.blueair = new BlueAirApi(this.log, config.username, config.password);
+    if(this.config.enableAWS) {
+      this.blueairAws = new BlueAirAwsApi(this.log, config.username, config.password, config.region);
+    }
 
     this.log.debug('Finished initializing platform:', this.config.name);
 
@@ -157,21 +162,21 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   async discoverAwsDevices() {
 
     // login to BlueAir
-    const login_flag: boolean = await this.blueair.awsLogin();
+    const login_flag: boolean = await this.blueairAws.awsLogin();
     if(!login_flag){
       this.log.error('Failed to login to AWS. Check password and restart Homebridge to try again.');
       return false;
     }
 
     // retrieve devices
-    const devices_flag = await this.blueair.getAwsDevices();
+    const devices_flag = await this.blueairAws.getAwsDevices();
     if(!devices_flag){
       this.log.error('Failed to get list of AWS devices. Check BlueAir App.');
       return false;
     }
 
     // loop over the discovered devices and register each one if it has not already been registered
-    for (const device of this.blueair.awsDevices) {
+    for (const device of this.blueairAws.awsDevices) {
       // generate a unique id for the accessory this should be generated from
       // something globally unique, but constant, for example, the device serial
       // number or MAC address
@@ -206,7 +211,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
           continue;
         }
 
-        const deviceInfo = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
+        const deviceInfo = await this.blueairAws.getAwsDeviceInfo(device.name, device.uuid);
         //this.log.info('Device Info:', deviceInfo);
 
         this.log.info('Adding new accessory:', device.name);
@@ -319,14 +324,14 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
   // AWS Accessory currently handles DustMagnet and Health Protect
   private async findAwsModelAndInitialize(device, accessory){
     // retreive model info
-    const info = await this.blueair.getAwsDeviceInfo(device.name, device.uuid);
-    this.log.info('Device Info from findAwsModelAndInitialize: ', info);
+    const info = await this.blueairAws.getAwsDeviceInfo(device.name, device.uuid);
+    this.log.debug('Device Info from findAwsModelAndInitialize: ', info);
     //this.log.info('%s of type "%s" initialized.', device.configuration.di.name, info.compatibility);
 
     switch (info[0].configuration.di.hw) {
       case 'b4basic_s_1.1': // DustMagnet 5210
       case 'b4basic_m_1.1': // DustMagnet 5410
-      case 'low_1.4': // HealthProtect 7710i
+      case 'low_1.4': // HealthProtect 7440i, 7710i
       case 'high_1.5': // HealthProtect 7470i
         this.log.info('Creating new object: BlueAirDustProtectAccessory');
         new BlueAirDustProtectAccessory(this, accessory);
