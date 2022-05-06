@@ -132,7 +132,7 @@ export class BlueAirDustProtectAccessory {
       this.platform.log.debug('Accessory Info: ', this.accessory);
       this.platform.log.debug('Accessory Name: ', this.accessory.context.deviceApiName);
       this.platform.log.debug('Accessory UUID: ', this.accessory.context.uuid);
-      const info = await this.platform.blueair.getAwsDeviceInfo(this.accessory.context.deviceApiName, this.accessory.context.uuid);
+      const info = await this.platform.blueairAws.getAwsDeviceInfo(this.accessory.context.deviceApiName, this.accessory.context.uuid);
       if(!info){
         this.platform.log.error('%s: getDeviceInfo failed.', this.accessory.displayName);
       }
@@ -488,19 +488,19 @@ export class BlueAirDustProtectAccessory {
     // Set AirPurifier state
     if (state === 1) {
       // Set fan to auto when turned on
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
     } else if (state === 0) {
       // Set fan speed to 0 when turned off
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', true);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', true);
     }
   }
 
   async handleTargetAirPurifierSet(state) {
     // Set fan to auto turned on without a speed set
     if(state === 0){ // Manual
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'automode', 'vb', false);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'automode', 'vb', false);
     } else if (state === 1){ // Auto
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'automode', 'vb', true);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'automode', 'vb', true);
     }
   }
 
@@ -508,15 +508,15 @@ export class BlueAirDustProtectAccessory {
     // Set child lock state
 
     if(state === 0){ // Child Lock Unlocked
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'childlock', 'vb', false);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'childlock', 'vb', false);
     } else if (state === 1){ // Child Lock Locked
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'childlock', 'vb', true);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'childlock', 'vb', true);
     }
   }
 
   async handleRotationSpeedSet(value) {
     // Set fan rotation speed  
-    await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'fanspeed', 'v', value);
+    await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'fanspeed', 'v', value);
   }
 
   async handleOnSet(state) {
@@ -529,12 +529,12 @@ export class BlueAirDustProtectAccessory {
       brightness = 0;
     }
 
-    await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'brightness', 'v', brightness);
+    await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'brightness', 'v', brightness);
   }
 
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
-    await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'brightness', 'v', value);
+    await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'brightness', 'v', value);
   }
 
   async handleNightModeSet(state) {
@@ -542,14 +542,14 @@ export class BlueAirDustProtectAccessory {
 
     // Set NightMode
     if(state === false){ // Night Mode Off
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', false);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', false);
     } else if (state === true){ // Night Mode On
       // If Air Purifier is turned off, first turn it on
       if(this.accessory.context.attributes.standby) {
         // Set fan to auto when turned on
-        await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
+        await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
       }
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', true);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'nightmode', 'vb', true);
     }
   }
 
@@ -558,14 +558,14 @@ export class BlueAirDustProtectAccessory {
 
     // Set GermShield
     if(state === false){ // Germ Shield Off
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', false);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', false);
     } else if (state === true){ // Night Mode On
       // If Air Purifier is turned off, first turn it on
       if(this.accessory.context.attributes.standby) {
         // Set fan to auto when turned on
-        await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
+        await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'standby', 'vb', false);
       }
-      await this.platform.blueair.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', true);
+      await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'germshield', 'vb', true);
     }
   }
 
