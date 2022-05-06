@@ -273,10 +273,10 @@ export class BlueAirAwareAccessory {
       }
 
       // Characteristic triggers warning if value over 1000      
-      if(this.accessory.context.measurements.PM2_5Density < 1000){ 
-        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
-      } else {
+      if(this.accessory.context.measurements.pm > 1000){ 
         this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, 1000);
+      } else {
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.measurements.pm);
       }
 
       // Characteristic triggers warning if value over 1000
@@ -318,7 +318,7 @@ export class BlueAirAwareAccessory {
         this.Lightbulb.updateCharacteristic(this.platform.Characteristic.On, 0);  
       }
 
-      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness * 25);
+      this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
     }
   }
 
@@ -388,9 +388,9 @@ export class BlueAirAwareAccessory {
     let brightness;
     if(state === true) {
       if(this.accessory.context.attributes.brightness !== '0'){
-        brightness = Math.floor(this.accessory.context.attributes.brightness / 100);
+        brightness = this.accessory.context.attributes.brightness;
       } else {
-        brightness = 4;
+        brightness = 100;
       }
     } else if (state === false) {
       brightness = 0;
@@ -403,10 +403,12 @@ export class BlueAirAwareAccessory {
   async handleBrightnessSet(value) {
     // Set LightBulb brightness
 
-    const brightness = Math.floor(value / 25);
+    const brightness = Math.floor(value / 25) * 25;
 
     const url_end: string = this.accessory.context.uuid + '/attribute/brightness/';
     await this.platform.blueair.sendCommand(url_end, brightness.toString(), 'brightness', this.accessory.context.uuid);    
+    this.Lightbulb.updateCharacteristic(this.platform.Characteristic.Brightness, this.accessory.context.attributes.brightness);
+    this.platform.log.info('%s: LED brightness: %s, set to %s', this.accessory.displayName, value, brightness);
   }
 
 }
