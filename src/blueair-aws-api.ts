@@ -17,16 +17,13 @@ export class BlueAirAwsApi {
   private region: string;
 
   private lastAuthenticateCall!: number;
-  //private base_API_url: string;
-  //private homehost!: string;
-  //private authToken!: string;
 
   // AWS URL Regions
   private gigyaRegion!: string;
   private awsRegion!: string;
 
   // AWS Keys
-  private awsKeys: object;
+  private readonly awsKeys: object = {};
   private awsApiKey!: string;
   private awsRestApiId!: string;
 
