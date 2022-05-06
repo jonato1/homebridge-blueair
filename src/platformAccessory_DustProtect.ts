@@ -372,7 +372,6 @@ export class BlueAirDustProtectAccessory {
       // Characteristic triggers warning if value over 1000
       if(this.accessory.context.sensorData.pm2_5 !== undefined){
         this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.sensorData.pm2_5);
-        this.AirPurifier.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.sensorData.pm2_5);
         this.platform.log.debug('Sensor Data - PM 2.5: ', this.accessory.context.sensorData.pm2_5);
       }
 

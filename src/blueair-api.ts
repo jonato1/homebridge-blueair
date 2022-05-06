@@ -5,7 +5,6 @@ import util from 'util';
 import {
   BLUEAIR_APIKEY,
   BLUEAIR_DEVICE_WAIT,
-  BLUEAIR_LOGIN_WAIT,
 } from './settings';
 
 export class BlueAirApi {

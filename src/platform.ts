@@ -37,6 +37,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       return;
     }
 
+    this.blueair = new BlueAirApi(this.log, config.username, config.password);
     this.blueairAws = new BlueAirAwsApi(this.log, config.username, config.password, config.region);
 
     this.log.debug('Finished initializing platform:', this.config.name);
