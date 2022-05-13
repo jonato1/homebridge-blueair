@@ -21,9 +21,6 @@ export class BlueAirApi {
 
   private log: Logger;
 
-  // store last query to BlueAir API
-  private lastquery;
-  
   // initiate instance with login information
   constructor(log: Logger, username: string, password: string) {
     this.log = log;

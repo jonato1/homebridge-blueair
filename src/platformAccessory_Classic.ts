@@ -12,6 +12,9 @@ export class BlueAirClassicAccessory {
   private FilterMaintenance: Service;
   private Lightbulb: Service;
 
+  // store last query to BlueAir API
+  private lastquery;
+
   // setup fake-gato history service for Eve support
   private historyService: fakegato.FakeGatoHistoryService;
 
@@ -83,7 +86,7 @@ export class BlueAirClassicAccessory {
   async updateDevice() {
     // update accessory.context with latest values from BlueAir
 
-    if ((Date.now() - BLUEAIR_DEVICE_WAIT) < this.platform.blueair.lastquery) {
+    if ((Date.now() - BLUEAIR_DEVICE_WAIT) < this.lastquery) {
       //this.platform.log.debug('Recent update from device already performed.');
       if(!this.accessory.context.attributes) {
         this.platform.log.error('%s: accessory context not set', this.accessory.displayName);
@@ -92,7 +95,7 @@ export class BlueAirClassicAccessory {
       //this.platform.log.debug('%s: using old data', this.accessory.displayName);
       return true; //ok to use current data in context to update Characteristic values
     }
-    this.platform.blueair.lastquery = Date.now(); // update time of last query     
+    this.lastquery = Date.now(); // update time of last query     
 
     try{
       const attributes = await this.platform.blueair.getDeviceAttributes(this.accessory.context.uuid);
