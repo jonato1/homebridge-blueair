@@ -558,11 +558,15 @@ export class BlueAirPlatformAccessory {
       this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxideLevel, 
         this.accessory.context.measurements.co2);
     
-      // peak CO2
-      const peakco2:number = Math.max(...this.accessory.context.devicehistory.co2);    
-      //this.platform.log.info('%s: peak CO2 = %s', this.accessory.displayName, peakco2);
-      this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel, peakco2);
-  
+      try{
+        // peak CO2
+        const peakco2:number = Math.max(...this.accessory.context.devicehistory.co2);    
+        //this.platform.log.info('%s: peak CO2 = %s', this.accessory.displayName, peakco2);
+        this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel, peakco2);
+      } catch(error) {
+        this.platform.log.warn('%s: Error retrieving peak co2 level', this.accessory.displayName);
+      }  
+
       // CO2 flag above 2000  
       if (this.accessory.context.measurements.co2 <= 2000) {
         this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxideDetected, 0);
