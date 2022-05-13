@@ -386,7 +386,7 @@ export class BlueAirApi {
       return false;
     }
 
-    this.log.debug('BlueAir API: data - %s',data);
+    this.log.debug('BlueAir API: data - %s', data);
     return data;
 
   }
