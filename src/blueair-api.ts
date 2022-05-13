@@ -388,8 +388,6 @@ export class BlueAirApi {
       this.log.warn(util.inspect(data, { colors: true, sorted: true, depth: 6 }));
       return false;
     }
-
-    this.log.debug('BlueAir API: data - %s',data);
     return data;
 
   }
