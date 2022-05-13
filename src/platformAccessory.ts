@@ -163,7 +163,7 @@ export class BlueAirPlatformAccessory {
         return false;
       }
       //this.platform.log.debug('%s: using old data', this.accessory.displayName);
-      return true; //ok to use current data in context to update Characteristic values
+      return false; //ok to use current data in context to update Characteristic values
     }
     this.platform.blueair.lastquery = Date.now(); // update time of last query     
 
@@ -311,7 +311,7 @@ export class BlueAirPlatformAccessory {
     // update context.device information from Kumo or Directly
     const status: boolean = await this.updateDevice();
     if(!status) { 
-      this.platform.log.info('updateAccessoryCharacteristic failed (%s)', this.accessory.context.uuid);
+      this.platform.log.debug('updateAccessoryCharacteristic failed (%s)', this.accessory.context.uuid);
       return false;
     }
 
@@ -634,11 +634,11 @@ export class BlueAirPlatformAccessory {
         fan_speed = item[2].toString();
       }
     }
-    this.platform.log.info('%s: fan value: %s, fan_speed: %s', this.accessory.displayName, value, fan_speed);
-
+    
     const url_end: string = this.accessory.context.uuid + '/attribute/fanspeed/';
     await this.platform.blueair.sendCommand(url_end, fan_speed, 'fan_speed', this.accessory.context.uuid);
     this.accessory.context.attributes.fan_speed = fan_speed;
+    this.platform.log.info('%s: fan value: %s, fan_speed: %s', this.accessory.displayName, value, fan_speed);
   }
 
   async handleOnSet(state) {
