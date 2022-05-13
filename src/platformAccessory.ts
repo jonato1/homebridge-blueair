@@ -127,7 +127,7 @@ export class BlueAirPlatformAccessory {
         humidity: this.accessory.context.measurements.hum,
         ppm: this.accessory.context.measurements.allpollu,
       });
-    }, 5000);
+    }, 60000);
 
   }
 
