@@ -23,7 +23,7 @@ export class BlueAirAwsApi {
   private awsRegion!: string;
 
   // AWS Keys
-  private readonly awsKeys: object = {};
+  private readonly awsKeys;
   private awsApiKey!: string;
   private awsRestApiId!: string;
 
@@ -62,6 +62,7 @@ export class BlueAirAwsApi {
     // Set AWS Regions to enable global interoperability
     // @TODO identify other AWS and Gigya regions
     // @TODO determine programatic way to identify region that doesn't rely on user having to maintain config
+    this.setAwsRegions();
     if(this.gigyaRegion === undefined) {
       throw new Error('No region specified for Gigya API.');
     }
@@ -74,7 +75,7 @@ export class BlueAirAwsApi {
     if(this.awsApiKey === undefined) {
       throw new Error('No API Key specified for AWS Execute API.');
     }
-    this.setAwsRegions();
+
     //this.base_API_url = 'https://api.blueair.io/v2/user/' + this.username + '/homehost/';
     //this.log.info('base_API_url: %s', this.base_API_url);
   }
