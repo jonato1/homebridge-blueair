@@ -102,8 +102,8 @@ export class BlueAirPlatformAccessory {
       .onGet(this.handleCarbonDioxideLevel.bind(this));
 
     // need to add future support for history to calculate peak
-    //this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel)
-    //  .onGet(this.handleCarbonDioxidePeakLevel.bind(this));
+    this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel)
+      .onGet(this.handleCarbonDioxidePeakLevel.bind(this));
 
     this.CarbonDioxideSensor.getCharacteristic(this.platform.Characteristic.CarbonDioxideDetected)
       .onGet(this.handleCarbonDioxideDetected.bind(this));
@@ -562,7 +562,9 @@ export class BlueAirPlatformAccessory {
         // peak CO2
         const peakco2:number = Math.max(...this.accessory.context.devicehistory.co2);    
         //this.platform.log.info('%s: peak CO2 = %s', this.accessory.displayName, peakco2);
-        this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel, peakco2);
+        if (peakco2 > 0) { 
+          this.CarbonDioxideSensor.updateCharacteristic(this.platform.Characteristic.CarbonDioxidePeakLevel, peakco2);
+        }
       } catch(error) {
         this.platform.log.warn('%s: Error retrieving peak co2 level', this.accessory.displayName);
       }  
