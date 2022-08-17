@@ -10,8 +10,8 @@ export class BlueAirDustProtectAccessory {
   // setup device services
   private AirPurifier: Service;
   private AirQualitySensor: Service;
-  private TemperatureSensor: Service;
-  private HumiditySensor: Service;
+  private TemperatureSensor!: Service;
+  private HumiditySensor!: Service;
   private FilterMaintenance: Service;
   private Lightbulb: Service;
   private NightMode: Service;
@@ -39,10 +39,6 @@ export class BlueAirDustProtectAccessory {
       this.accessory.addService(this.platform.Service.AirPurifier);
     this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
       this.accessory.addService(this.platform.Service.AirQualitySensor);
-    this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
-      this.accessory.addService(this.platform.Service.TemperatureSensor);
-    this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
-      this.accessory.addService(this.platform.Service.HumiditySensor);
     this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) ||
       this.accessory.addService(this.platform.Service.FilterMaintenance);
     this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
@@ -114,7 +110,7 @@ export class BlueAirDustProtectAccessory {
         this.modelName = 'HealthProtect';
         break;
       default:
-        this.modelName = 'BlueAir Wi-Fi Enabled Purifier'
+        this.modelName = 'BlueAir Wi-Fi Enabled Purifier';
     }
 
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
@@ -125,6 +121,11 @@ export class BlueAirDustProtectAccessory {
 
     // Only set up GermProtect, Tempature, and Humidity on HealthProtect models
     if(this.accessory.context.configuration.di.hw === 'high_1.5') {
+      this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
+        this.accessory.addService(this.platform.Service.TemperatureSensor);
+      this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
+        this.accessory.addService(this.platform.Service.HumiditySensor);
+
       this.GermShield.getCharacteristic(this.platform.Characteristic.On)
         .onGet(this.handleGermShieldGet.bind(this))
         .onSet(this.handleGermShieldSet.bind(this));
