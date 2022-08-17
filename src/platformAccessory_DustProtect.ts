@@ -10,6 +10,8 @@ export class BlueAirDustProtectAccessory {
   // setup device services
   private AirPurifier: Service;
   private AirQualitySensor: Service;
+  private TemperatureSensor!: Service;
+  private HumiditySensor!: Service;
   private FilterMaintenance: Service;
   private Lightbulb: Service;
   private NightMode: Service;
@@ -17,6 +19,7 @@ export class BlueAirDustProtectAccessory {
 
   // store last query to BlueAir API
   private lastquery;
+  private modelName: string;
 
   // setup fake-gato history service for Eve support
   private historyService: fakegato.FakeGatoHistoryService;
@@ -44,6 +47,7 @@ export class BlueAirDustProtectAccessory {
       this.accessory.addService(this.platform.Service.Switch);
     this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
       this.accessory.addService(this.platform.Service.Switch);
+    this.modelName = 'BlueAir Wi-Fi Enabled Purifier';
 
     // create handlers for characteristics
     this.AirPurifier.getCharacteristic(this.platform.Characteristic.Active)
@@ -96,20 +100,44 @@ export class BlueAirDustProtectAccessory {
 
     await this.updateDevice();
 
+    switch (this.accessory.context.configuration.di.hw) {
+      case 'b4basic_s_1.1': // DustMagnet 5210
+      case 'b4basic_m_1.1': // DustMagnet 5410
+        this.modelName = 'DustMagnet';
+        break;
+      case 'low_1.4': // HealthProtect 7440i, 7710i
+      case 'high_1.5': // HealthProtect 7470i
+        this.modelName = 'HealthProtect';
+        break;
+      default:
+        this.modelName = 'BlueAir Wi-Fi Enabled Purifier';
+    }
+
     this.accessory.getService(this.platform.Service.AccessoryInformation)!
       .setCharacteristic(this.platform.Characteristic.Manufacturer, 'BlueAir')
-      .setCharacteristic(this.platform.Characteristic.Model, 'DustProtect')
+      .setCharacteristic(this.platform.Characteristic.Model, this.modelName)
       .setCharacteristic(this.platform.Characteristic.SerialNumber, this.accessory.context.configuration.di.ds)
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.accessory.context.configuration.di.mfv);
 
-    // Only set up GermProtect on HealthProtect models
+    // Only set up GermProtect, Tempature, and Humidity on HealthProtect models
     if(this.accessory.context.configuration.di.hw === 'high_1.5') {
+      this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
+        this.accessory.addService(this.platform.Service.TemperatureSensor);
+      this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
+        this.accessory.addService(this.platform.Service.HumiditySensor);
+
       this.GermShield.getCharacteristic(this.platform.Characteristic.On)
         .onGet(this.handleGermShieldGet.bind(this))
         .onSet(this.handleGermShieldSet.bind(this));
 
       this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
         .onGet(this.handleGermShieldNameGet.bind(this));
+
+      this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+        .onGet(this.handleTemperatureGet.bind(this));
+
+      this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+        .onGet(this.handleHumidityGet.bind(this));
     }
 
   }
@@ -213,6 +241,16 @@ export class BlueAirDustProtectAccessory {
     return this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM2_5Density).value;
   }
 
+  async handleTemperatureGet() {
+    await this.updateAccessoryCharacteristics();
+    return this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature).value;
+  }
+
+  async handleHumidityGet() {
+    await this.updateAccessoryCharacteristics();
+    return this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity).value;
+  }
+
   async handleFilterChangeGet() {
     await this.updateAccessoryCharacteristics();
     return this.FilterMaintenance.getCharacteristic(this.platform.Characteristic.FilterChangeIndication).value;
@@ -274,6 +312,8 @@ export class BlueAirDustProtectAccessory {
     await this.updateNightMode();
     if(this.accessory.context.configuration.di.hw === 'high_1.5') {
       await this.updateGermShield();
+      await this.updateTempSensor();
+      await this.updateHumiditySensor();
     }
 
     return true;
@@ -365,6 +405,38 @@ export class BlueAirDustProtectAccessory {
     return true;
   }
 
+  async updateTempSensor() {
+    // Update Temperature measurements
+    if(this.accessory.context.sensorData !== undefined) {
+      this.platform.log.debug('Sensor Data: ', this.accessory.context.sensorData);
+      let currentValue = 0;
+      // Characteristic triggers warning if value below -270 and over 100; measured in Celcius
+      if(this.accessory.context.sensorData.t !== undefined){
+        currentValue = this.accessory.context.sensorData.t;
+        this.TemperatureSensor.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, currentValue);
+        this.platform.log.debug('Temperature: ', currentValue);
+      }
+
+      this.TemperatureSensor.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, currentValue);
+    }
+  }
+
+  async updateHumiditySensor() {
+    // Update Temperature measurements
+    if(this.accessory.context.sensorData !== undefined) {
+      this.platform.log.debug('Sensor Data: ', this.accessory.context.sensorData);
+      let currentValue = 0;
+      // Characteristic triggers warning if value below 0 and over 100
+      if(this.accessory.context.sensorData.h !== undefined){
+        currentValue = this.accessory.context.sensorData.h;
+        this.HumiditySensor.updateCharacteristic(this.platform.Characteristic.CurrentTemperature, currentValue);
+        this.platform.log.debug('Humidity: ', currentValue);
+      }
+
+      this.HumiditySensor.updateCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity, currentValue);
+    }
+  }
+
   async updateAirQualitySensor() {
     // Update AirQuality measurements
     if(this.accessory.context.sensorData !== undefined) {
@@ -374,14 +446,18 @@ export class BlueAirDustProtectAccessory {
         this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.PM2_5Density, this.accessory.context.sensorData.pm2_5);
         this.platform.log.debug('Sensor Data - PM 2.5: ', this.accessory.context.sensorData.pm2_5);
       }
+      if(this.accessory.context.sensorData.tVOC !== undefined){
+        this.AirQualitySensor.updateCharacteristic(this.platform.Characteristic.VOCDensity, this.accessory.context.sensorData.tVOC);
+        this.platform.log.debug('Sensor Data - tVOC: ', this.accessory.context.sensorData.tVOC);
+      }
 
-      // Used 2.5 levels from https://www.epa.gov/sites/default/files/2014-05/documents/zell-aqi.pdf
+      // Used 2.5 levels from Blueair https://p13.zdusercontent.com/attachment/10296796/yAiDFUVJ8TVKKSClbLiWCoLfe?token=eyJhbGciOiJkaXIiLCJlbmMiOiJBMTI4Q0JDLUhTMjU2In0..fI7-AsJ9SUhyJZpY-j3bxw.JwSbAcnZEAy81sYvOgYzbcA5mFkd0u1QDU9KWIqh0S5Gk2D4vpZe0JmzS3wwKd_XGr4XArmyuoNaZ1fL-Xjjw1BolnIE6PY4CNtnxnsEbccyRY0lxyeBJ-z2cdV8-vwp0pBc9f6f3aPT17JTQt8R2T5keuxlEUaz3XTJ45ALBN1q8D1H-YJtN8OuYGinu3Malw63x0pwmI012Xl1JBmGERiica_qeppfjACQffbM7E_GRPDSgwAzaufFqSwweSsN45q8G4kaiT9kS4pMl1xEbX5evxPh80A16PWBznnn95w.VeF3HbNP8fC3ORGQh47Nzw
       const levels = [
-        [99999, 150.5, 5], // 5 = this.platform.Characteristic.AirQuality.POOR
-        [150.4, 65.5, 4], // 4 = this.platform.Characteristic.AirQuality.INFERIOR
-        [65.4, 40.5, 3], //  3 = this.platform.Characteristic.AirQuality.FAIR
-        [40.4, 15.5, 2], // 2 = this.platform.Characteristic.AirQuality.GOOD
-        [15.4, 0, 1], // 1 = this.platform.Characteristic.AirQuality.EXCELLENT
+        [99999, 50.1, 5], // 5 = this.platform.Characteristic.AirQuality.POOR
+        [50, 35.1, 4], // 4 = this.platform.Characteristic.AirQuality.INFERIOR
+        [35, 25.1, 3], //  3 = this.platform.Characteristic.AirQuality.FAIR
+        [25, 10.1, 2], // 2 = this.platform.Characteristic.AirQuality.GOOD
+        [10, 0, 1], // 1 = this.platform.Characteristic.AirQuality.EXCELLENT
       ];
 
       const ppm = this.accessory.context.sensorData.pm2_5;
