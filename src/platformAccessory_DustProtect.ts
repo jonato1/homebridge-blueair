@@ -120,7 +120,7 @@ export class BlueAirDustProtectAccessory {
       .setCharacteristic(this.platform.Characteristic.FirmwareRevision, this.accessory.context.configuration.di.mfv);
 
     // Only set up GermProtect, Tempature, and Humidity on HealthProtect models
-    if(this.accessory.context.configuration.di.hw === 'high_1.5') {
+    if(this.modelName === 'HealthProtect') {
       this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
         this.accessory.addService(this.platform.Service.TemperatureSensor);
       this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
