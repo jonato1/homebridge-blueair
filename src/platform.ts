@@ -298,25 +298,26 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       case 'classic_480i':
       case 'classic_580i':
       case 'classic_680i': 
-        new BlueAirPlatformAccessory(this, accessory);
+        new BlueAirPlatformAccessory(this, accessory, this.config);
         break;
 
       case 'aware': 
-        new BlueAirAwareAccessory(this, accessory);
+        new BlueAirAwareAccessory(this, accessory, this.config);
         break;
 
       case 'classic_205':
       case 'classic_405':
       case 'classic_505':
       case 'classic_605':
-        new BlueAirClassicAccessory(this, accessory);
+        new BlueAirClassicAccessory(this, accessory, this.config);
         break;
         
       case 'sense+':
-        new BlueAirClassicAccessory(this, accessory);
+        new BlueAirClassicAccessory(this, accessory, this.config);
         break;
       default:
         this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
+        this.log.error('%s: compatibility type not recognized.', info.compatibility);
     }
 
   }
