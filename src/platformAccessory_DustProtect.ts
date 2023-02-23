@@ -1,4 +1,4 @@
-import { Service, PlatformAccessory } from 'homebridge';
+import { Service, PlatformAccessory, PlatformConfig } from 'homebridge';
 
 import fakegato from 'fakegato-history';
 
@@ -9,13 +9,13 @@ import { BLUEAIR_DEVICE_WAIT } from './settings';
 export class BlueAirDustProtectAccessory {
   // setup device services
   private AirPurifier: Service;
-  private AirQualitySensor: Service;
+  private AirQualitySensor!: Service;
   private TemperatureSensor!: Service;
   private HumiditySensor!: Service;
   private FilterMaintenance: Service;
-  private Lightbulb: Service;
-  private NightMode: Service;
-  private GermShield: Service;
+  private Lightbulb!: Service;
+  private NightMode!: Service;
+  private GermShield!: Service;
 
   // store last query to BlueAir API
   private lastquery;
@@ -27,6 +27,7 @@ export class BlueAirDustProtectAccessory {
   constructor(
     private readonly platform: BlueAirHomebridgePlatform,
     private readonly accessory: PlatformAccessory,
+    private readonly config: PlatformConfig,
   ) {
 
     // set model name, firware, etc.
@@ -37,16 +38,24 @@ export class BlueAirDustProtectAccessory {
     // initiate services
     this.AirPurifier = this.accessory.getService(this.platform.Service.AirPurifier) ||
       this.accessory.addService(this.platform.Service.AirPurifier);
-    this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
-      this.accessory.addService(this.platform.Service.AirQualitySensor);
+    if (!config.hideAirQualitySensor) {
+      this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
+        this.accessory.addService(this.platform.Service.AirQualitySensor);
+    }
     this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) ||
       this.accessory.addService(this.platform.Service.FilterMaintenance);
-    this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
-      this.accessory.addService(this.platform.Service.Lightbulb);
-    this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
-      this.accessory.addService(this.platform.Service.Switch);
-    this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
-      this.accessory.addService(this.platform.Service.Switch);
+    if (!config.hideLED) {
+      this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
+        this.accessory.addService(this.platform.Service.Lightbulb);
+    }
+    if (!config.hideNightMode) {
+      this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
+        this.accessory.addService(this.platform.Service.Switch);
+    }
+    if (!config.hideGermShield) {
+      this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
+        this.accessory.addService(this.platform.Service.Switch);
+    }
     this.modelName = 'BlueAir Wi-Fi Enabled Purifier';
 
     // create handlers for characteristics
@@ -69,8 +78,10 @@ export class BlueAirDustProtectAccessory {
       .onGet(this.handleRotationSpeedGet.bind(this))
       .onSet(this.handleRotationSpeedSet.bind(this));
 
-    this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM2_5Density)
-      .onGet(this.handlePM25DensityGet.bind(this));
+    if (!config.hideAirQualitySensor) {
+      this.AirQualitySensor.getCharacteristic(this.platform.Characteristic.PM2_5Density)
+        .onGet(this.handlePM25DensityGet.bind(this));
+    }
 
     this.FilterMaintenance.getCharacteristic(this.platform.Characteristic.FilterChangeIndication)
       .onGet(this.handleFilterChangeGet.bind(this));
@@ -78,20 +89,23 @@ export class BlueAirDustProtectAccessory {
     this.FilterMaintenance.getCharacteristic(this.platform.Characteristic.FilterLifeLevel)
       .onGet(this.handleFilterLifeLevelGet.bind(this));
 
-    this.Lightbulb.getCharacteristic(this.platform.Characteristic.On)
-      .onGet(this.handleOnGet.bind(this))
-      .onSet(this.handleOnSet.bind(this));
+    if (!config.hideLED) {
+      this.Lightbulb.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(this.handleOnGet.bind(this))
+        .onSet(this.handleOnSet.bind(this));
 
-    this.Lightbulb.getCharacteristic(this.platform.Characteristic.Brightness)
-      .onGet(this.handleBrightnessGet.bind(this))
-      .onSet(this.handleBrightnessSet.bind(this));
+      this.Lightbulb.getCharacteristic(this.platform.Characteristic.Brightness)
+        .onGet(this.handleBrightnessGet.bind(this))
+        .onSet(this.handleBrightnessSet.bind(this));
+    }
 
-    this.NightMode.getCharacteristic(this.platform.Characteristic.On)
-      .onGet(this.handleNightModeGet.bind(this))
-      .onSet(this.handleNightModeSet.bind(this));
-
-    this.NightMode.getCharacteristic(this.platform.Characteristic.Name)
-      .onGet(this.handleNightModeNameGet.bind(this));
+    if (!config.hideNightMode) {
+      this.NightMode.getCharacteristic(this.platform.Characteristic.On)
+        .onGet(this.handleNightModeGet.bind(this))
+        .onSet(this.handleNightModeSet.bind(this));
+      this.NightMode.getCharacteristic(this.platform.Characteristic.Name)
+        .onGet(this.handleNightModeNameGet.bind(this));
+    }
 
   }
 
@@ -121,23 +135,30 @@ export class BlueAirDustProtectAccessory {
 
     // Only set up GermProtect, Tempature, and Humidity on HealthProtect models
     if(this.modelName === 'HealthProtect') {
-      this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
-        this.accessory.addService(this.platform.Service.TemperatureSensor);
-      this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
-        this.accessory.addService(this.platform.Service.HumiditySensor);
+      if (!this.config.hideTemperatureSensor) {
+        this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
+          this.accessory.addService(this.platform.Service.TemperatureSensor);
 
-      this.GermShield.getCharacteristic(this.platform.Characteristic.On)
-        .onGet(this.handleGermShieldGet.bind(this))
-        .onSet(this.handleGermShieldSet.bind(this));
+        this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
+          .onGet(this.handleTemperatureGet.bind(this));
+      }
 
-      this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
-        .onGet(this.handleGermShieldNameGet.bind(this));
+      if (!this.config.hideHumiditySensor) {
+        this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
+          this.accessory.addService(this.platform.Service.HumiditySensor);
 
-      this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
-        .onGet(this.handleTemperatureGet.bind(this));
+        this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
+          .onGet(this.handleHumidityGet.bind(this));
+      }
 
-      this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
-        .onGet(this.handleHumidityGet.bind(this));
+      if (!this.config.hideGermShield) {
+        this.GermShield.getCharacteristic(this.platform.Characteristic.On)
+          .onGet(this.handleGermShieldGet.bind(this))
+          .onSet(this.handleGermShieldSet.bind(this));
+
+        this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
+          .onGet(this.handleGermShieldNameGet.bind(this));
+      }
     }
 
   }

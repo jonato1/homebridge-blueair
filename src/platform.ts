@@ -323,7 +323,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
 
   // AWS Accessory currently handles DustMagnet and Health Protect
   private async findAwsModelAndInitialize(device, accessory){
-    // retreive model info
+    // retrieve model info
     const info = await this.blueairAws.getAwsDeviceInfo(device.name, device.uuid);
     this.log.debug('Device Info from findAwsModelAndInitialize: ', info);
     //this.log.info('%s of type "%s" initialized.', device.configuration.di.name, info.compatibility);
@@ -334,7 +334,7 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
       case 'low_1.4': // HealthProtect 7440i, 7710i
       case 'high_1.5': // HealthProtect 7470i
         this.log.info('Creating new object: BlueAirDustProtectAccessory');
-        new BlueAirDustProtectAccessory(this, accessory);
+        new BlueAirDustProtectAccessory(this, accessory, this.config);
         break;
       default:
         this.log.error('%s: device type not recognized, contact developer via GitHub.', device.name);
