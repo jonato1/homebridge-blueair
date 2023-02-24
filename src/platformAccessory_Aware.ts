@@ -33,22 +33,32 @@ export class BlueAirAwareAccessory {
     if (!config.hideLED) {
       this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
         this.accessory.addService(this.platform.Service.Lightbulb);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.Lightbulb);
     }
     if (!config.hideAirQualitySensor) {
       this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
         this.accessory.addService(this.platform.Service.AirQualitySensor);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.AirQualitySensor);
     }
     if (!config.hideTemperatureSensor) {
       this.TemperatureSensor = this.accessory.getService(this.platform.Service.TemperatureSensor) ||
         this.accessory.addService(this.platform.Service.TemperatureSensor);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.TemperatureSensor);
     }
     if (!config.hideHumiditySensor) {
       this.HumiditySensor = this.accessory.getService(this.platform.Service.HumiditySensor) ||
         this.accessory.addService(this.platform.Service.HumiditySensor);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.HumiditySensor);
     }
     if (!config.hideCO2Sensor) {
       this.CarbonDioxideSensor = this.accessory.getService(this.platform.Service.CarbonDioxideSensor) ||
         this.accessory.addService(this.platform.Service.CarbonDioxideSensor);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.CarbonDioxideSensor);
     }
     
     // create handlers for characteristics

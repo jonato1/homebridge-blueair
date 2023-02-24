@@ -1,4 +1,4 @@
-import { Service, PlatformAccessory, PlatformConfig } from 'homebridge';
+import {Service, PlatformAccessory, PlatformConfig } from 'homebridge';
 
 import fakegato from 'fakegato-history';
 
@@ -41,21 +41,29 @@ export class BlueAirDustProtectAccessory {
     if (!config.hideAirQualitySensor) {
       this.AirQualitySensor = this.accessory.getService(this.platform.Service.AirQualitySensor) ||
         this.accessory.addService(this.platform.Service.AirQualitySensor);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.AirQualitySensor);
     }
     this.FilterMaintenance = this.accessory.getService(this.platform.Service.FilterMaintenance) ||
       this.accessory.addService(this.platform.Service.FilterMaintenance);
     if (!config.hideLED) {
-      this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
-        this.accessory.addService(this.platform.Service.Lightbulb);
+       this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
+         this.accessory.addService(this.platform.Service.Lightbulb);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.Lightbulb);
     }
     if (!config.hideNightMode) {
-      this.NightMode = this.accessory.getService(this.platform.Service.Switch) ||
-        this.accessory.addService(this.platform.Service.Switch);
+      this.NightMode = this.accessory.getService('Night Mode') ||
+        this.accessory.addService(this.platform.Service.Switch, 'Night Mode');
+    } else {
+      const existingNightModeSwitch = this.platform.getServiceUsingName(this.accessory, 'Night Mode');
+      if (existingNightModeSwitch != null) {
+        this.platform.removeServiceIfExists(this.accessory, existingNightModeSwitch);
+      } else {
+        this.platform.removeServiceIfExists(this.accessory, this.platform.Service.Switch);
+      }
     }
-    if (!config.hideGermShield) {
-      this.GermShield = this.accessory.getService(this.platform.Service.Switch) ||
-        this.accessory.addService(this.platform.Service.Switch);
-    }
+
     this.modelName = 'BlueAir Wi-Fi Enabled Purifier';
 
     // create handlers for characteristics
@@ -141,6 +149,8 @@ export class BlueAirDustProtectAccessory {
 
         this.TemperatureSensor.getCharacteristic(this.platform.Characteristic.CurrentTemperature)
           .onGet(this.handleTemperatureGet.bind(this));
+      } else {
+        this.platform.removeServiceIfExists(this.accessory, this.platform.Service.TemperatureSensor);
       }
 
       if (!this.config.hideHumiditySensor) {
@@ -149,15 +159,27 @@ export class BlueAirDustProtectAccessory {
 
         this.HumiditySensor.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
           .onGet(this.handleHumidityGet.bind(this));
+      } else {
+        this.platform.removeServiceIfExists(this.accessory, this.platform.Service.HumiditySensor);
       }
 
       if (!this.config.hideGermShield) {
+        this.GermShield = this.accessory.getService('Germ Shield') ||
+          this.accessory.addService(this.platform.Service.Switch, 'Germ Shield');
+
         this.GermShield.getCharacteristic(this.platform.Characteristic.On)
           .onGet(this.handleGermShieldGet.bind(this))
           .onSet(this.handleGermShieldSet.bind(this));
 
         this.GermShield.getCharacteristic(this.platform.Characteristic.Name)
           .onGet(this.handleGermShieldNameGet.bind(this));
+      } else {
+        const existingGermShieldSwitch = this.platform.getServiceUsingName(this.accessory, 'Germ Shield');
+        if (existingGermShieldSwitch != null) {
+          this.platform.removeServiceIfExists(this.accessory, existingGermShieldSwitch);
+        } else {
+          this.platform.removeServiceIfExists(this.accessory, this.platform.Service.Switch);
+        }
       }
     }
 
@@ -613,9 +635,14 @@ export class BlueAirDustProtectAccessory {
   }
 
   async handleRotationSpeedSet(value) {
-    // Set fan rotation speed  
+    // Set fan rotation speed
     await this.platform.blueairAws.setAwsDeviceInfo(this.accessory.context.uuid, 'fanspeed', 'v', value);
     this.AirPurifier.updateCharacteristic(this.platform.Characteristic.RotationSpeed, value);
+
+    if(this.accessory.context.attributes.automode) {
+      this.accessory.context.attributes.automode = false;
+      await this.updateAirPurifierTargetAirPurifierState();
+    }
   }
 
   async handleOnSet(state) {

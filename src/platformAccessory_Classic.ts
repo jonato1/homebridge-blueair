@@ -35,6 +35,8 @@ export class BlueAirClassicAccessory {
     if (!config.hideLED) {
       this.Lightbulb = this.accessory.getService(this.platform.Service.Lightbulb) ||
         this.accessory.addService(this.platform.Service.Lightbulb);
+    } else {
+      this.platform.removeServiceIfExists(this.accessory, this.platform.Service.Lightbulb);
     }
     
     // create handlers for characteristics

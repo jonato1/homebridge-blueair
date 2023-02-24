@@ -342,4 +342,22 @@ export class BlueAirHomebridgePlatform implements DynamicPlatformPlugin {
         this.log.error('This device is not yet supported. Device Type: ', info[0].configuration.di.hw);
     }
   }
+
+  public removeServiceIfExists(accessory, service) {
+    const foundService = accessory.getService(service);
+    if (foundService != null) {
+      this.log.warn(
+        'Removing stale Service: uuid:[%s]',
+        foundService.UUID,
+      );
+
+      accessory.removeService(foundService);
+    }
+  }
+
+  public getServiceUsingName(accessory, serviceName: string) {
+    const foundService = accessory.getService(serviceName);
+
+    return foundService;
+  }
 }
